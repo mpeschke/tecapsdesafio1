@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# QtCreator/CMake user settings
+CMakeLists.txt.user
+CMakeFiles
+Makefile
+CMakeCache.txt
+desafio1
