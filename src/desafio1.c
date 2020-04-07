@@ -1,30 +1,10 @@
 #include <stdlib.h>
 #include "desafio1.h"
 
-#define INDIVIDUOMAXID 3
-#define INDIVIDUOMAXFIRSTNAME 50
-#define INDIVIDUOMAXLASTNAME 50
-#define INDIVIDUOMAXBIRTHDAY 10
-#define INDIVIDUOMAXPHONE 16
 // Determina aqui qual o valor do maior tamanho dos parâmetros listados acima.
 #define LARGESTPARAMSIZE 50
 
 #define MAXDATABASESIZE 100
-
-struct Individuo {
-    char paramId[INDIVIDUOMAXID];
-    char firstName[INDIVIDUOMAXFIRSTNAME];
-    char lastName[INDIVIDUOMAXLASTNAME];
-    char birthday[INDIVIDUOMAXBIRTHDAY];
-    char phone[INDIVIDUOMAXPHONE];
-} typedef stIndividuo;
-
-struct Query {
-    char fn[INDIVIDUOMAXFIRSTNAME];
-    char ln[INDIVIDUOMAXLASTNAME];
-    char bd[INDIVIDUOMAXBIRTHDAY];
-    char pn[INDIVIDUOMAXPHONE];
-} typedef stQuery;
 
 stIndividuo database[MAXDATABASESIZE];
 
@@ -449,7 +429,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence)
     return TRUE;
 }
 
-BOOL querycommandlexicalanalyser(const char *const sentence)
+BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
 {
     static const int maxquerysentencesize = MAXQUERYSENTENCESIZE;
     int sentencesize = strlen(sentence);
@@ -472,14 +452,14 @@ BOOL querycommandlexicalanalyser(const char *const sentence)
         return FALSE;
 
     BOOL error = FALSE;
-    stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
+
     do
     {
         tokeninitialpos = ++tokenfinalpos;
         tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
         if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &maxquerysentencesize))
             break;
-        else if(!validatetokenqueryparam(tokenbuffer, &qry))
+        else if(!validatetokenqueryparam(tokenbuffer, pqry))
             error = TRUE;
     }while (!error);
 
@@ -534,6 +514,7 @@ void iniciaCRUD(void)
     {
         char BUFF[MAXSENTENCESIZE] = {'\0'};
         fgets(BUFF, MAXSENTENCESIZE, stdin);
+        stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
 
         if(addcommandlexicalanalyser(BUFF))
             break;
@@ -541,7 +522,7 @@ void iniciaCRUD(void)
             break;
         else if (infocommandlexicalanalyser(BUFF))
             break;
-        else if (querycommandlexicalanalyser(BUFF))
+        else if (querycommandlexicalanalyser(BUFF, &qry))
             break;
         else if (terminatecommandlexicalanalyser(BUFF))
             terminate = terminatecommand();

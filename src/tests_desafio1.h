@@ -354,7 +354,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 58; i++)
     {
-        BOOL ret = querycommandlexicalanalyser(query_syntaticanalyser_valid_testcases[i]);
+        stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
+        BOOL ret = querycommandlexicalanalyser(query_syntaticanalyser_valid_testcases[i], &qry);
         printf("%s: Valor esperado: TRUE. Valor retornado: %s. Analisador sintático 'query' para a sentença '%s'.\n",
                ret == TRUE ? "PASSED" : "FAILED",
                ret == TRUE ? "TRUE" : "FALSE",
@@ -439,7 +440,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 69; i++)
     {
-        BOOL ret = querycommandlexicalanalyser(query_syntaticanalyser_invalid_testcases[i]);
+        stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
+        BOOL ret = querycommandlexicalanalyser(query_syntaticanalyser_invalid_testcases[i], &qry);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'query' para a sentença '%s'.\n",
                ret == TRUE ? "FAILED" : "PASSED",
                ret == TRUE ? "TRUE" : "FALSE",
