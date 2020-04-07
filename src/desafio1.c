@@ -275,7 +275,7 @@ BOOL validatetokenqueryparam(const char *const param, stQuery* pQry)
     return FALSE;
 }
 
-BOOL addcommandlexicalanalyser(const char *const sentence)
+BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
     if (sentencesize > MAXADDSENTENCESIZE)
@@ -301,8 +301,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     if(!validatetokenaddcommandidparam(tokenbuffer))
         return FALSE;
 
-    stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
-    strcpy(individuo.paramId, tokenbuffer);
+    strcpy(pindividuo->paramId, tokenbuffer);
 
     tokeninitialpos = ++tokenfinalpos;
     tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
@@ -312,7 +311,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     if(!validatetokenaddcommandfirstnameparam(tokenbuffer))
         return FALSE;
 
-    strcpy(individuo.firstName, tokenbuffer);
+    strcpy(pindividuo->firstName, tokenbuffer);
 
     tokeninitialpos = ++tokenfinalpos;
     tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
@@ -322,7 +321,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     if(!validatetokenaddcommandlastnameparam(tokenbuffer))
         return FALSE;
 
-    strcpy(individuo.lastName, tokenbuffer);
+    strcpy(pindividuo->lastName, tokenbuffer);
 
     tokeninitialpos = ++tokenfinalpos;
     tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
@@ -332,7 +331,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     if(!validatetokenaddcommandbirthdayparam(tokenbuffer))
         return FALSE;
 
-    strcpy(individuo.birthday, tokenbuffer);
+    strcpy(pindividuo->birthday, tokenbuffer);
 
     tokeninitialpos = ++tokenfinalpos;
     tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
@@ -342,7 +341,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     if(!validatetokenaddcommandphoneparam(tokenbuffer))
         return FALSE;
 
-    strcpy(individuo.phone, tokenbuffer);
+    strcpy(pindividuo->phone, tokenbuffer);
 
     // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando add.
     tokeninitialpos = ++tokenfinalpos;
@@ -511,11 +510,12 @@ void iniciaCRUD(void)
     while(!terminate)
     {
         char BUFF[MAXSENTENCESIZE] = {'\0'};
-        fgets(BUFF, MAXSENTENCESIZE, stdin);
         stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
 
-        if(addcommandlexicalanalyser(BUFF))
+        fgets(BUFF, MAXSENTENCESIZE, stdin);
+
+        if(addcommandlexicalanalyser(BUFF, &individuo))
             break;
         else if (delcommandlexicalanalyser(BUFF, &individuo))
             break;

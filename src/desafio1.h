@@ -34,7 +34,7 @@ struct Query {
  * a sintaxe dos comandos 'add', 'del', 'info', 'query' e
  * '000').
 */
-BOOL addcommandlexicalanalyser(const char *const sentence);
+BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo);
 
 BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo);
 

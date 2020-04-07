@@ -303,7 +303,8 @@ void test_unittests_desafio_1(void)
     // validar a sentença como CORRETA (TRUE).
     for(int i = 0; i < 14; i++)
     {
-        BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_valid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_valid_testcases[i], &individuo);
         printf("%s: Valor esperado: TRUE. Valor retornado: %s. Analisador sintático 'add' para a sentença '%s'.\n",
                ret == TRUE ? "PASSED" : "FAILED",
                ret == TRUE ? "TRUE" : "FALSE",
@@ -391,7 +392,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 25; i++)
     {
-        BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_invalid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_invalid_testcases[i], &individuo);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'add' para a sentença '%s'.\n",
                ret == TRUE ? "FAILED" : "PASSED",
                ret == TRUE ? "TRUE" : "FALSE",
