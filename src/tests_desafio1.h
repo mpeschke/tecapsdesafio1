@@ -4,7 +4,7 @@
 #include <string.h>
 #include "desafio1.h"
 
-static const char add_syntaticanalyser_valid_testcases[14][237] =
+static const char add_syntaticanalyser_valid_testcases[14][66] =
 {
     "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
     "     add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
@@ -42,7 +42,7 @@ static const char del_syntaticanalyser_valid_testcases[16][19] =
     "   del     ABC    "
 };
 
-static const char info_syntaticanalyser_valid_testcases[16][19] =
+static const char info_syntaticanalyser_valid_testcases[16][20] =
 {
     "info 1",
     "info 12",
@@ -62,7 +62,7 @@ static const char info_syntaticanalyser_valid_testcases[16][19] =
     "   info     ABC    "
 };
 
-static const char query_syntaticanalyser_valid_testcases[58][57] =
+static const char query_syntaticanalyser_valid_testcases[58][56] =
 {
     "query fn:r",
     "query ln:n",
@@ -124,7 +124,16 @@ static const char query_syntaticanalyser_valid_testcases[58][57] =
     " query    ln:Nascimento    bd:01/01/1960    fn:Roberto "
 };
 
-static const char add_syntaticanalyser_invalid_testcases[25][252] =
+static const char terminate_syntaticanalyser_valid_testcases[5][12] =
+{
+    "000",
+    " 000",
+    "000 ",
+    " 000 ",
+    "    000    "
+};
+
+static const char add_syntaticanalyser_invalid_testcases[25][67] =
 {
     "",
     "                                             ",
@@ -153,7 +162,7 @@ static const char add_syntaticanalyser_invalid_testcases[25][252] =
     "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190 outro param"
 };
 
-static const char del_syntaticanalyser_invalid_testcases[18][98] =
+static const char del_syntaticanalyser_invalid_testcases[18][96] =
 {
     "",
     "del ",
@@ -175,7 +184,7 @@ static const char del_syntaticanalyser_invalid_testcases[18][98] =
     "del ABC aproveita del 123 junto e também add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190"
 };
 
-static const char info_syntaticanalyser_invalid_testcases[20][98] =
+static const char info_syntaticanalyser_invalid_testcases[20][96] =
 {
     "",
     "info ",
@@ -199,7 +208,7 @@ static const char info_syntaticanalyser_invalid_testcases[20][98] =
     "del ABC aproveita del 123 junto e também add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190"
 };
 
-static const char query_syntaticanalyser_invalid_testcases[70][62] =
+static const char query_syntaticanalyser_invalid_testcases[69][59] =
 {
     "",
     "    ",
@@ -270,6 +279,18 @@ static const char query_syntaticanalyser_invalid_testcases[70][62] =
     "query fn:Roberto ln:Nascimento bd:01/01/1960 ln:Nascime",
     "query bd:01/01/1960 ln:Nascnto bd:01/01/1960 ln:Nascime",
     "query pn:+55-21-4444-0190 bd:01/01/1960 pn:+55-21-4444-0190"
+};
+
+static const char terminate_syntaticanalyser_invalid_testcases[8][23] =
+{
+    "000 termina aí",
+    "OOO",
+    "001",
+    "0",
+    "00",
+    "000 000",
+    "000 001",
+    "000 DAVE, JUST WHAT..."
 };
 
 void test_unittests_desafio_1(void)
@@ -345,6 +366,23 @@ void test_unittests_desafio_1(void)
         testcounter++;
     }
 
+    // Testa cenários para os quais o analisador sintático 'terminatecommandlexicalanalyser' deve
+    // validar a sentença como CORRETA (TRUE).
+    printf("\n");
+    for(int i = 0; i < 5; i++)
+    {
+        BOOL ret = terminatecommandlexicalanalyser(terminate_syntaticanalyser_valid_testcases[i]);
+        printf("%s: Valor esperado: TRUE. Valor retornado: %s. Analisador sintático 'terminate' para a sentença '%s'.\n",
+               ret == TRUE ? "PASSED" : "FAILED",
+               ret == TRUE ? "TRUE" : "FALSE",
+               terminate_syntaticanalyser_valid_testcases[i]);
+        if(ret)
+            passed++;
+        else
+            failed++;
+        testcounter++;
+    }
+
     // Testa cenários para os quais o analisador sintático 'addcommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
@@ -399,13 +437,30 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'querycommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
-    for(int i = 0; i < 70; i++)
+    for(int i = 0; i < 69; i++)
     {
         BOOL ret = querycommandlexicalanalyser(query_syntaticanalyser_invalid_testcases[i]);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'query' para a sentença '%s'.\n",
                ret == TRUE ? "FAILED" : "PASSED",
                ret == TRUE ? "TRUE" : "FALSE",
                query_syntaticanalyser_invalid_testcases[i]);
+        if(ret)
+            failed++;
+        else
+            passed++;
+        testcounter++;
+    }
+
+    // Testa cenários para os quais o analisador sintático 'terminatecommandlexicalanalyser' deve
+    // validar a sentença como INCORRETA (FALSE).
+    printf("\n");
+    for(int i = 0; i < 8; i++)
+    {
+        BOOL ret = terminatecommandlexicalanalyser(terminate_syntaticanalyser_invalid_testcases[i]);
+        printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'terminate' para a sentença '%s'.\n",
+               ret == TRUE ? "FAILED" : "PASSED",
+               ret == TRUE ? "TRUE" : "FALSE",
+               terminate_syntaticanalyser_invalid_testcases[i]);
         if(ret)
             failed++;
         else
