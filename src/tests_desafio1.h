@@ -337,7 +337,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 16; i++)
     {
-        BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_valid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_valid_testcases[i], &individuo);
         printf("%s: Valor esperado: TRUE. Valor retornado: %s. Analisador sintático 'info' para a sentença '%s'.\n",
                ret == TRUE ? "PASSED" : "FAILED",
                ret == TRUE ? "TRUE" : "FALSE",
@@ -423,7 +424,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 20; i++)
     {
-        BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_invalid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_invalid_testcases[i], &individuo);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'info' para a sentença '%s'.\n",
                ret == TRUE ? "FAILED" : "PASSED",
                ret == TRUE ? "TRUE" : "FALSE",

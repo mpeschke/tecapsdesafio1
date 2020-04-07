@@ -38,7 +38,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence);
 
 BOOL delcommandlexicalanalyser(const char *const sentence);
 
-BOOL infocommandlexicalanalyser(const char *const sentence);
+BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo);
 
 BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry);
 

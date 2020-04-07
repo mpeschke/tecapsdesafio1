@@ -391,7 +391,7 @@ BOOL delcommandlexicalanalyser(const char *const sentence)
     return TRUE;
 }
 
-BOOL infocommandlexicalanalyser(const char *const sentence)
+BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
     if (sentencesize < MININFOSENTENCESIZE)
@@ -417,8 +417,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence)
     if(!validatetokeninfocommandidparam(tokenbuffer))
         return FALSE;
 
-    stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
-    strcpy(individuo.paramId, tokenbuffer);
+    strcpy(pindividuo->paramId, tokenbuffer);
 
     // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando info.
     tokeninitialpos = ++tokenfinalpos;
@@ -515,12 +514,13 @@ void iniciaCRUD(void)
         char BUFF[MAXSENTENCESIZE] = {'\0'};
         fgets(BUFF, MAXSENTENCESIZE, stdin);
         stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
 
         if(addcommandlexicalanalyser(BUFF))
             break;
         else if (delcommandlexicalanalyser(BUFF))
             break;
-        else if (infocommandlexicalanalyser(BUFF))
+        else if (infocommandlexicalanalyser(BUFF, &individuo))
             break;
         else if (querycommandlexicalanalyser(BUFF, &qry))
             break;
