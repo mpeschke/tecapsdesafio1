@@ -1,6 +1,77 @@
 #include <stdlib.h>
 #include "desafio1.h"
 
+#define INDIVIDUOMAXID 3
+#define INDIVIDUOMAXFIRSTNAME 50
+#define INDIVIDUOMAXLASTNAME 50
+#define INDIVIDUOMAXBIRTHDAY 10
+#define INDIVIDUOMAXPHONE 16
+// Determina aqui qual o valor do maior tamanho dos parâmetros listados acima.
+#define LARGESTPARAMSIZE 50
+
+#define MAXDATABASESIZE 100
+
+struct Individuo {
+    char paramId[INDIVIDUOMAXID];
+    char firstName[INDIVIDUOMAXFIRSTNAME];
+    char lastName[INDIVIDUOMAXLASTNAME];
+    char birthday[INDIVIDUOMAXBIRTHDAY];
+    char phone[INDIVIDUOMAXPHONE];
+} typedef stIndividuo;
+
+struct Query {
+    char fn[INDIVIDUOMAXFIRSTNAME];
+    char ln[INDIVIDUOMAXLASTNAME];
+    char bd[INDIVIDUOMAXBIRTHDAY];
+    char pn[INDIVIDUOMAXPHONE];
+} typedef stQuery;
+
+stIndividuo database[MAXDATABASESIZE];
+
+// Exemplo de comando 'add': 'add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190'
+// 'add' = 3, 'id' = 3(máximo de 3), 'firstname' = 7(máximo de 50), 'lastname' = 10(máximo de 50),
+// 'birthday' = 10, 'phone' = 16, espaços = 5.
+// Máximo comprimento da string: 137
+static const int MAXADDSENTENCESIZE = 137;
+// Exemplo de comando 'del': 'del 123'
+// 'del' = 3, 'id' = 3(mínimo de 1, máximo de 3), espaços = 1.
+// Máximo comprimento da string: 7
+// Mínimo comprimento da string: 5
+static const int MAXDELSENTENCESIZE = 7;
+static const int MINDELSENTENCESIZE = 5;
+// Exemplo de comando 'info': 'info 123'
+// 'info' = 4, 'id' = 3(máximo de 3), espaços = 1.
+// Máximo comprimento da string: 8
+static const int MAXINFOSENTENCESIZE = 8;
+static const int MININFOSENTENCESIZE = 6;
+// Exemplo de comando 'query': 'query fn:João ln:Ninguém 123 bd:00/00/0000 pn:+00-00-0000-0000'
+// 'query' = 5, 'fn:FIRSTNAME' = 3 ('fn:') + (tamanho máximo de primeiro nome: 50),
+// 'ln:LASTNAME' = 3 ('ln:') + (tamanho máximo de sobrenome: 50),
+// 'bd:00/00/0000' = 3 ('bd:') + (tamanho máximo de birthday: 10),
+// 'pn:+00-00-0000-0000' = 3 ('pn:') + (tamanho máximo de phone: 16), espaços = 5.
+// Máximo comprimento da string: 148
+// 'xx:'
+#define QUERYPARAMIDSIZE 3
+#define MAXQUERYFNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
+#define MAXQUERYLNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
+#define MAXQUERYBDSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXBIRTHDAY)
+#define MAXQUERYPNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXPHONE)
+#define MAXQUERYSENTENCESIZE (5 + MAXQUERYFNSIZE + MAXQUERYLNSIZE + MAXQUERYBDSIZE + MAXQUERYPNSIZE)
+static const char* QUERYFN = "fn:";
+static const char* QUERYLN = "ln:";
+static const char* QUERYBD = "bd:";
+static const char* QUERYPN = "pn:";
+#define MINQUERYSENTENCESIZE (5 + 1 + QUERYPARAMIDSIZE + 1)
+// Exemplo de comando 'terminate': '000' (máximo de 3 caracteres).
+#define TERMINATEPARAMIDSIZE 3
+
+// Para auxiliar o programa a utilizar o maior buffer disponível
+// para interpretar lexicamente os comandos, definimos qual é o maior
+// buffer dos comandos implementados aqui:
+#define MAXSENTENCESIZE MAXQUERYSENTENCESIZE
+
+static const char SENTENCETOKENSEPARATOR = ' ';
+
 static const int ADDVERBDESCRIPTIONPOSITION = 0;
 static const int DELCOMMANDDESCRIPTIONPOSITION = 1;
 static const int INFOCOMMANDDESCRIPTIONPOSITION = 2;
@@ -48,12 +119,12 @@ int advancetonexttoken(const char *const sentence, const int *const pinitialposi
     return i;
 }
 
-BOOL getsentencetoken(const int* const pposicaoleiturainicial,
-                      int* pposicaoleiturafinal,
+BOOL getsentencetoken(const int* const  pposicaoleiturainicial,
+                      int*              pposicaoleiturafinal,
                       const char* const sentence,
-                      const int* const pmaxsizesentence,
-                      char* token,
-                      const int* const pmaxsizetoken)
+                      const int* const  pmaxsizesentence,
+                      char*             token,
+                      const int* const  pmaxsizetoken)
 {
     // Limpa todo o buffer provido para receber o token.
     memset((void*)token, '\0', *pmaxsizetoken);
@@ -65,8 +136,13 @@ BOOL getsentencetoken(const int* const pposicaoleiturainicial,
     {
         if(sentence[i] != SENTENCETOKENSEPARATOR)
         {
-            *token = sentence[i];
-            token++;
+            // O buffer do token tem um tamanho limitado, não necessariamente igual
+            // ao buffer da sentença.
+            if(j+1 < *pmaxsizetoken)
+            {
+                *token = sentence[i];
+                token++;
+            }
             j++;
         }
         else
@@ -128,6 +204,14 @@ BOOL validatetokeninfocommandidparam(const char *const idparam)
 BOOL validatetokenqueryverb(const char *const verb)
 {
     if(strcmp(commandverbs[QUERYCOMMANDDESCRIPTIONPOSITION], verb) == 0)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+BOOL validatetokenterminateverb(const char *const verb)
+{
+    if(strcmp(commandverbs[TERMINATECOMMANDDESCRIPTIONPOSITION], verb) == 0)
         return TRUE;
     else
         return FALSE;
@@ -409,4 +493,57 @@ BOOL querycommandlexicalanalyser(const char *const sentence)
         return FALSE;
 
     return TRUE;
+}
+
+BOOL terminatecommandlexicalanalyser(const char *const sentence)
+{
+    static const int terminatesentencesize = TERMINATEPARAMIDSIZE;
+    int sentencesize = strlen(sentence);
+    if (sentencesize < TERMINATEPARAMIDSIZE)
+        return FALSE;
+
+    char tokenbuffer[TERMINATEPARAMIDSIZE];
+
+    int tokeninitialpos = 0;
+    int tokenfinalpos = tokeninitialpos;
+
+    tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &terminatesentencesize))
+        return FALSE;
+
+    if(!validatetokenterminateverb(tokenbuffer))
+        return FALSE;
+
+    // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando terminate.
+    tokeninitialpos = ++tokenfinalpos;
+    tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
+    if(getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &terminatesentencesize))
+        return FALSE;
+
+    return TRUE;
+}
+
+BOOL terminatecommand(void)
+{return TRUE;}
+
+void iniciaCRUD(void)
+{
+    BOOL terminate = FALSE;
+
+    while(!terminate)
+    {
+        char BUFF[MAXSENTENCESIZE] = {'\0'};
+        fgets(BUFF, MAXSENTENCESIZE, stdin);
+
+        if(addcommandlexicalanalyser(BUFF))
+            break;
+        else if (delcommandlexicalanalyser(BUFF))
+            break;
+        else if (infocommandlexicalanalyser(BUFF))
+            break;
+        else if (querycommandlexicalanalyser(BUFF))
+            break;
+        else if (terminatecommandlexicalanalyser(BUFF))
+            terminate = terminatecommand();
+    }
 }
