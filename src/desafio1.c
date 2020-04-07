@@ -414,7 +414,7 @@ BOOL querycommandlexicalanalyser(const char *const sentence)
     // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando info.
     tokeninitialpos = ++tokenfinalpos;
     tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
+    if(getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &maxquerysentencesize))
         return FALSE;
 
     return TRUE;
