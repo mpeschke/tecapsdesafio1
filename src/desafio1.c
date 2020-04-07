@@ -353,7 +353,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence)
     return TRUE;
 }
 
-BOOL delcommandlexicalanalyser(const char *const sentence)
+BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
     if (sentencesize < MINDELSENTENCESIZE)
@@ -379,8 +379,7 @@ BOOL delcommandlexicalanalyser(const char *const sentence)
     if(!validatetokendelcommandidparam(tokenbuffer))
         return FALSE;
 
-    stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
-    strcpy(individuo.paramId, tokenbuffer);
+    strcpy(pindividuo->paramId, tokenbuffer);
 
     // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando del.
     tokeninitialpos = ++tokenfinalpos;
@@ -518,7 +517,7 @@ void iniciaCRUD(void)
 
         if(addcommandlexicalanalyser(BUFF))
             break;
-        else if (delcommandlexicalanalyser(BUFF))
+        else if (delcommandlexicalanalyser(BUFF, &individuo))
             break;
         else if (infocommandlexicalanalyser(BUFF, &individuo))
             break;

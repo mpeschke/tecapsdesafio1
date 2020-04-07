@@ -320,7 +320,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 16; i++)
     {
-        BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_valid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_valid_testcases[i], &individuo);
         printf("%s: Valor esperado: TRUE. Valor retornado: %s. Analisador sintático 'del' para a sentença '%s'.\n",
                ret == TRUE ? "PASSED" : "FAILED",
                ret == TRUE ? "TRUE" : "FALSE",
@@ -407,7 +408,8 @@ void test_unittests_desafio_1(void)
     printf("\n");
     for(int i = 0; i < 18; i++)
     {
-        BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_invalid_testcases[i]);
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_invalid_testcases[i], &individuo);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'del' para a sentença '%s'.\n",
                ret == TRUE ? "FAILED" : "PASSED",
                ret == TRUE ? "TRUE" : "FALSE",

@@ -36,7 +36,7 @@ struct Query {
 */
 BOOL addcommandlexicalanalyser(const char *const sentence);
 
-BOOL delcommandlexicalanalyser(const char *const sentence);
+BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo);
 
 BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo);
 
