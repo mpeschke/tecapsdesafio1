@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include "desafio1.h"
 
-static const int ADDVERBDESCRIPTIONPOSITION = 1;
-static const int DELCOMMANDDESCRIPTIONPOSITION = 2;
-static const int INFOCOMMANDDESCRIPTIONPOSITION = 3;
-static const int QUERYCOMMANDDESCRIPTIONPOSITION = 4;
-static const int TERMINATECOMMANDDESCRIPTIONPOSITION = 5;
+static const int ADDVERBDESCRIPTIONPOSITION = 0;
+static const int DELCOMMANDDESCRIPTIONPOSITION = 1;
+static const int INFOCOMMANDDESCRIPTIONPOSITION = 2;
+static const int QUERYCOMMANDDESCRIPTIONPOSITION = 3;
+static const int TERMINATECOMMANDDESCRIPTIONPOSITION = 4;
 
 /*
  * Array: descrição de texto dos possíveis comandos implementados no sistema.
@@ -19,23 +19,14 @@ const char commandinitializers[5][8] =
     "000"
 };
 
-const char commandverbs[6][10] =
+const char commandverbs[5][10] =
 {
-    "invalid",
     "add",
     "del",
     "info",
     "query",
-    "terminate"
+    "000"
 };
-
-const char *const getcommanddescription(const enum systemcommands command)
-{
-    if((command < invalid) || (command > terminate))
-        return commandverbs[0];
-
-    return commandverbs[command];
-}
 
 /*
  * Funções que compõem um analisador léxico: uma 'sentença' (sentence) é composta por palavras
@@ -418,13 +409,4 @@ BOOL querycommandlexicalanalyser(const char *const sentence)
         return FALSE;
 
     return TRUE;
-}
-
-enum systemcommands commandparser(const char* candidate)
-{
-    for(enum systemcommands commanditem = add; commanditem <= NUMOFCOMMANDS; commanditem++)
-        if (strcmp(candidate, commandinitializers[commanditem-1]) == 0)
-            return commanditem;
-
-    return invalid;
 }

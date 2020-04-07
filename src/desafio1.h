@@ -79,23 +79,6 @@ static const char SENTENCETOKENSEPARATOR = ' ';
  * programa não conseguiu fazer o parsing do comando (comando incorreto
  * ou não identificado).
 */
-static const int NUMOFCOMMANDS = 5;
-enum systemcommands {invalid, add, del, info, query, terminate};
-
-const char *const getcommanddescription(const enum systemcommands command);
-
-BOOL validatetokenaddverb(const char *const verb);
-
-BOOL validatetokenaddcommandidparam(const char *const idparam);
-
-BOOL validatetokenaddcommandfirstnameparam(const char *const firstnameparam);
-
-BOOL validatetokenaddcommandlastnameparam(const char *const lastnameparam);
-
-BOOL validatetokenaddcommandbirthdayparam(const char *const birthdayparam);
-
-BOOL validatetokenaddcommandphoneparam(const char *const phoneparam);
-
 BOOL addcommandlexicalanalyser(const char *const sentence);
 
 BOOL delcommandlexicalanalyser(const char *const sentence);
@@ -103,7 +86,5 @@ BOOL delcommandlexicalanalyser(const char *const sentence);
 BOOL infocommandlexicalanalyser(const char *const sentence);
 
 BOOL querycommandlexicalanalyser(const char *const sentence);
-
-enum systemcommands commandparser(const char* candidate);
 
 #endif
