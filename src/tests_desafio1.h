@@ -7,19 +7,19 @@
 static const char add_syntaticanalyser_valid_testcases[14][66] =
 {
     "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
-    "     add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
-    "add       123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
-    "add 123    Roberto Nascimento 01/01/1960 +55-21-0190-0190",
-    "add 123 Roberto     Nascimento 01/01/1960 +55-21-0190-0190",
-    "add 123 Roberto Nascimento      01/01/1960 +55-21-0190-0190",
-    "add 123 Roberto Nascimento 01/01/1960       +55-21-0190-0190",
-    "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190     ",
-    "      add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190    ",
-    "add 1 João Silva 01/02/2020 +51-33-9999-9988",
-    "add 444 Carlos Irineu 99/88/9999 +00-00-0000-0000",
-    "add 0 Gustavo Gustavo 01/01/1960 +55-21-0190-0190",
-    "add 1 Marcelo Marcelo AA/BB/CCCC +55-21-0190-0190",
-    "add 1 Marcelo Marcelo 01/01/1960 +XX-WW-YYYY-ZZZZ"
+    "     add 124 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
+    "add       125 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
+    "add 1    Roberto Nascimento 01/01/1960 +55-21-0190-0190",
+    "add 2 Roberto     Nascimento 01/01/1960 +55-21-0190-0190",
+    "add 3 Roberto Nascimento      01/01/1960 +55-21-0190-0190",
+    "add 4 Roberto Nascimento 01/01/1960       +55-21-0190-0190",
+    "add 5 Roberto Nascimento 01/01/1960 +55-21-0190-0190     ",
+    "      add 6 Roberto Nascimento 01/01/1960 +55-21-0190-0190    ",
+    "add A João Silva 01/02/2020 +51-33-9999-9988",
+    "add BBB Carlos Irineu 99/88/9999 +00-00-0000-0000",
+    "add 7 Gustavo Gustavo 01/01/1960 +55-21-0190-0190",
+    "add 8 Marcelo Marcelo AA/BB/CCCC +55-21-0190-0190",
+    "add 9 Marcelo Marcelo 01/01/1960 +XX-WW-YYYY-ZZZZ"
 };
 
 static const char del_syntaticanalyser_valid_testcases[16][19] =
@@ -474,6 +474,16 @@ void test_unittests_desafio_1(void)
         else
             passed++;
         testcounter++;
+    }
+
+    // Testa cenários onde o comando 'addcommandlexicalanalyser' deve
+    // com sucesso criar um novo indivíduo.
+    printf("\n");
+    for(int i = 0; i < 14; i++)
+    {
+        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        addcommandlexicalanalyser(add_syntaticanalyser_valid_testcases[i], &individuo);
+        addcommand(&individuo);
     }
 
     printf("\n\nTestes realizados: %d. (PASSED: %d, FAILED: %d)\n", testcounter, passed, failed);

@@ -4,7 +4,8 @@
 
 int main()
 {
-    test_unittests_desafio_1();
+    //test_unittests_desafio_1();
+    iniciaCRUD();
 
     return 0;
 }

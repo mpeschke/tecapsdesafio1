@@ -61,15 +61,6 @@ static const int TERMINATECOMMANDDESCRIPTIONPOSITION = 4;
 /*
  * Array: descrição de texto dos possíveis comandos implementados no sistema.
 */
-const char commandinitializers[5][8] =
-{
-    "add ",
-    "del ",
-    "info ",
-    "query ",
-    "000"
-};
-
 const char commandverbs[5][10] =
 {
     "add",
@@ -500,8 +491,119 @@ BOOL terminatecommandlexicalanalyser(const char *const sentence)
     return TRUE;
 }
 
+void addcommand(const stIndividuo *const pindividuo)
+{
+    BOOL found = FALSE;
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+    {
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+        {
+            found = TRUE;
+            break;
+        }
+    }
+
+    if(found)
+        printf("ID %s ja cadastrado\n", pindividuo->paramId);
+    else
+        for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+            if(strlen(database[i].paramId) == 0)
+            {
+                strcpy(database[i].phone, pindividuo->phone);
+                strcpy(database[i].paramId, pindividuo->paramId);
+                strcpy(database[i].birthday, pindividuo->birthday);
+                strcpy(database[i].firstName, pindividuo->firstName);
+                strcpy(database[i].lastName, pindividuo->lastName);
+                break;
+            }
+}
+
+void infocommand(const stIndividuo *const pindividuo)
+{
+    BOOL found = FALSE;
+    for(unsigned long i = 0; i < sizeof (database); i++)
+    {
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+        {
+            printf("%s %s %s %s\n",
+                   database[i].firstName,
+                   database[i].lastName,
+                   database[i].birthday,
+                   database[i].phone);
+            found = TRUE;
+            break;
+        }
+    }
+
+    if(!found)
+        printf("ID %s nao existente\n", pindividuo->paramId);
+}
+
+void querycommand(const stQuery *const pquery)
+{
+    BOOL found = FALSE;
+    for(unsigned long i = 0; i < sizeof (database); i++)
+    {
+        if(strlen(pquery->bd))
+            if(strcmp(pquery->bd, database[i].birthday) == 0)
+            {
+                printf("%s ", database[i].paramId);
+                found = TRUE;
+                break;
+            }
+        if(strlen(pquery->fn))
+            if(strcmp(pquery->fn, database[i].firstName) == 0)
+            {
+                printf("%s ", database[i].paramId);
+                found = TRUE;
+                break;
+            }
+        if(strlen(pquery->ln))
+            if(strcmp(pquery->ln, database[i].lastName) == 0)
+            {
+                printf("%s ", database[i].paramId);
+                found = TRUE;
+                break;
+            }
+        if(strlen(pquery->pn))
+            if(strcmp(pquery->pn, database[i].phone) == 0)
+            {
+                printf("%s ", database[i].paramId);
+                found = TRUE;
+                break;
+            }
+    }
+
+    if(!found)
+        printf("\n");
+}
+
+void delcommand(const stIndividuo *const pindividuo)
+{
+    BOOL found = FALSE;
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+    {
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+        {
+            found = TRUE;
+            strcpy(database[i].phone, "");
+            strcpy(database[i].paramId, "");
+            strcpy(database[i].birthday, "");
+            strcpy(database[i].firstName, "");
+            strcpy(database[i].lastName, "");
+            break;
+        }
+    }
+
+    if(!found)
+        printf("ID %s nao existente.\n", pindividuo->paramId);
+}
+
 BOOL terminatecommand(void)
 {return TRUE;}
+
+void zero_fgets_trailchars(char* buff)
+{buff[strcspn(buff, "\r\n")] = 0;}
 
 void iniciaCRUD(void)
 {
@@ -510,19 +612,31 @@ void iniciaCRUD(void)
     while(!terminate)
     {
         char BUFF[MAXSENTENCESIZE] = {'\0'};
-        stQuery qry = { .fn = {'\0'}, .ln = {'\0'}, .bd = {'\0'}, .pn = {'\0'}};
-        stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
+        stQuery qry = {
+            .fn = {'\0'},
+            .ln = {'\0'},
+            .bd = {'\0'},
+            .pn = {'\0'}
+        };
+        stIndividuo individuo = {
+            .paramId = "",
+            .firstName = "",
+            .lastName = "",
+            .birthday = "",
+            .phone = ""
+        };
 
         fgets(BUFF, MAXSENTENCESIZE, stdin);
+        zero_fgets_trailchars(BUFF);
 
         if(addcommandlexicalanalyser(BUFF, &individuo))
-            break;
+            addcommand(&individuo);
         else if (delcommandlexicalanalyser(BUFF, &individuo))
-            break;
+            delcommand(&individuo);
         else if (infocommandlexicalanalyser(BUFF, &individuo))
-            break;
+            infocommand(&individuo);
         else if (querycommandlexicalanalyser(BUFF, &qry))
-            break;
+            querycommand(&qry);
         else if (terminatecommandlexicalanalyser(BUFF))
             terminate = terminatecommand();
     }
