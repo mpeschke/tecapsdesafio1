@@ -6,6 +6,8 @@
 
 #define MAXDATABASESIZE 100
 
+#define RECORDNOTFOUNDDATABASEINDEX -1
+
 stIndividuo database[MAXDATABASESIZE];
 
 // Exemplo de comando 'add': 'add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190'
@@ -266,6 +268,37 @@ BOOL validatetokenqueryparam(const char *const param, stQuery* pQry)
     return FALSE;
 }
 
+BOOL addcommandlexicalanalyser_idonly(const char *const sentence, stIndividuo* pindividuo)
+{
+    int sentencesize = strlen(sentence);
+    if (sentencesize > MAXADDSENTENCESIZE)
+        return FALSE;
+
+    char tokenbuffer[MAXADDSENTENCESIZE];
+
+    int tokeninitialpos = 0;
+    int tokenfinalpos = tokeninitialpos;
+
+    tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXADDSENTENCESIZE))
+        return FALSE;
+
+    if(!validatetokenaddverb(tokenbuffer))
+        return FALSE;
+
+    tokeninitialpos = ++tokenfinalpos;
+    tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXADDSENTENCESIZE))
+        return FALSE;
+
+    BOOL valid = validatetokenaddcommandidparam(tokenbuffer);
+
+    if(valid)
+        strcpy(pindividuo->paramId, tokenbuffer);
+
+    return valid;
+}
+
 BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
@@ -521,7 +554,7 @@ void addcommand(const stIndividuo *const pindividuo)
 void infocommand(const stIndividuo *const pindividuo)
 {
     BOOL found = FALSE;
-    for(unsigned long i = 0; i < sizeof (database); i++)
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
     {
         if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
         {
@@ -541,41 +574,27 @@ void infocommand(const stIndividuo *const pindividuo)
 
 void querycommand(const stQuery *const pquery)
 {
-    BOOL found = FALSE;
-    for(unsigned long i = 0; i < sizeof (database); i++)
+    BOOL match = FALSE;
+    BOOL searchbd = strlen(pquery->bd);
+    BOOL searchfn = strlen(pquery->fn);
+    BOOL searchln = strlen(pquery->ln);
+    BOOL searchpn = strlen(pquery->pn);
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
     {
-        if(strlen(pquery->bd))
-            if(strcmp(pquery->bd, database[i].birthday) == 0)
-            {
-                printf("%s ", database[i].paramId);
-                found = TRUE;
-                break;
-            }
-        if(strlen(pquery->fn))
-            if(strcmp(pquery->fn, database[i].firstName) == 0)
-            {
-                printf("%s ", database[i].paramId);
-                found = TRUE;
-                break;
-            }
-        if(strlen(pquery->ln))
-            if(strcmp(pquery->ln, database[i].lastName) == 0)
-            {
-                printf("%s ", database[i].paramId);
-                found = TRUE;
-                break;
-            }
-        if(strlen(pquery->pn))
-            if(strcmp(pquery->pn, database[i].phone) == 0)
-            {
-                printf("%s ", database[i].paramId);
-                found = TRUE;
-                break;
-            }
+        match = TRUE;
+        if(searchbd)
+            match &= (strcmp(pquery->bd, database[i].birthday) == 0);
+        if(searchfn)
+            match &= (strcmp(pquery->fn, database[i].firstName) == 0);
+        if(searchln)
+            match &= (strcmp(pquery->ln, database[i].lastName) == 0);
+        if(searchpn)
+            match &= (strcmp(pquery->pn, database[i].phone) == 0);
+        if(match)
+            printf("%s ", database[i].paramId);
     }
 
-    if(!found)
-        printf("\n");
+    printf("\n");
 }
 
 void delcommand(const stIndividuo *const pindividuo)
@@ -597,6 +616,15 @@ void delcommand(const stIndividuo *const pindividuo)
 
     if(!found)
         printf("ID %s nao existente.\n", pindividuo->paramId);
+}
+
+int searchdatabaserecord(const stIndividuo *const pindividuo)
+{
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+            return i;
+
+    return RECORDNOTFOUNDDATABASEINDEX;
 }
 
 BOOL terminatecommand(void)
@@ -629,8 +657,18 @@ void iniciaCRUD(void)
         fgets(BUFF, MAXSENTENCESIZE, stdin);
         zero_fgets_trailchars(BUFF);
 
-        if(addcommandlexicalanalyser(BUFF, &individuo))
-            addcommand(&individuo);
+        if(addcommandlexicalanalyser_idonly(BUFF, &individuo))
+        {
+            if(searchdatabaserecord(&individuo) == RECORDNOTFOUNDDATABASEINDEX)
+            {
+                if(addcommandlexicalanalyser(BUFF, &individuo))
+                    addcommand(&individuo);
+            }
+            else
+            {
+                addcommand(&individuo);
+            }
+        }
         else if (delcommandlexicalanalyser(BUFF, &individuo))
             delcommand(&individuo);
         else if (infocommandlexicalanalyser(BUFF, &individuo))
