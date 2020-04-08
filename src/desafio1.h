@@ -1,19 +1,28 @@
 #ifndef CABECALHO_DESAFIO1_H_INCLUDED
 #define CABECALHO_DESAFIO1_H_INCLUDED
 
+#include <stdio.h>
+#include <string.h>
+
+// Não há tipo booleano em C, portanto
+// vamos criar um para facilitar a leitura
+// de operações booleanas no código:
 #define BOOL int
 #define TRUE 1
 #define FALSE 0
-
-#include <stdio.h>
-#include <string.h>
 
 #define INDIVIDUOMAXID 3
 #define INDIVIDUOMAXFIRSTNAME 50
 #define INDIVIDUOMAXLASTNAME 50
 #define INDIVIDUOMAXBIRTHDAY 10
 #define INDIVIDUOMAXPHONE 16
+// Indicando aqui qual o valor do maior tamanho dos parâmetros listados acima.
+#define LARGESTINDIVIDUOPARAMSIZE 50
 
+/*
+ * Estrutura para organizar as informações de um indivíduo.
+ *
+*/
 struct Individuo {
     char paramId[INDIVIDUOMAXID+1];
     char firstName[INDIVIDUOMAXFIRSTNAME+1];
@@ -22,6 +31,10 @@ struct Individuo {
     char phone[INDIVIDUOMAXPHONE+1];
 } typedef stIndividuo;
 
+/*
+ * Estrutura para organizar os parâmetros de busca ('query').
+ *
+*/
 struct Query {
     char fn[INDIVIDUOMAXFIRSTNAME+1];
     char ln[INDIVIDUOMAXLASTNAME+1];
@@ -44,14 +57,22 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry);
 
 BOOL terminatecommandlexicalanalyser(const char *const sentence);
 
+/*
+ * Os comandos do sistema ('add', 'del', 'info', 'query' e
+ * '000').
+*/
 void addcommand(const stIndividuo *const pindividuo);
-
-BOOL terminatecommand(void);
 
 void infocommand(const stIndividuo *const pindividuo);
 
 void querycommand(const stQuery *const pquery);
 
+BOOL terminatecommand(void);
+
+/*
+ * Inicia a captura dos comandos digitados pelo usuário.
+ *
+*/
 void iniciaCRUD(void);
 
 #endif
