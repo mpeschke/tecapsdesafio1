@@ -4,7 +4,7 @@
 #include <string.h>
 #include "desafio1.h"
 
-static const char add_syntaticanalyser_valid_testcases[14][66] =
+static const char add_syntaticanalyser_valid_testcases[12][66] =
 {
     "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
     "     add 124 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
@@ -15,51 +15,47 @@ static const char add_syntaticanalyser_valid_testcases[14][66] =
     "add 4 Roberto Nascimento 01/01/1960       +55-21-0190-0190",
     "add 5 Roberto Nascimento 01/01/1960 +55-21-0190-0190     ",
     "      add 6 Roberto Nascimento 01/01/1960 +55-21-0190-0190    ",
-    "add A João Silva 01/02/2020 +51-33-9999-9988",
-    "add BBB Carlos Irineu 99/88/9999 +00-00-0000-0000",
     "add 7 Gustavo Gustavo 01/01/1960 +55-21-0190-0190",
     "add 8 Marcelo Marcelo AA/BB/CCCC +55-21-0190-0190",
     "add 9 Marcelo Marcelo 01/01/1960 +XX-WW-YYYY-ZZZZ"
 };
 
-static const char del_syntaticanalyser_valid_testcases[16][19] =
+static const char del_syntaticanalyser_valid_testcases[15][10] =
 {
     "del 1",
+    "del 0",
+    "del 00",
+    "del 000",
+    " del 1",
+    "del 1 ",
+    " del 1 ",
     "del 12",
+    " del 12",
+    "del 12 ",
+    " del 12 ",
     "del 123",
-    "del A",
-    "del AB",
-    "del ABC",
-    "del  A",
-    "del  AB",
-    "del  ABC",
-    "del  A ",
-    "del  AB ",
-    "del  ABC ",
-    " del  A",
-    " del  AB",
-    " del  ABC",
-    "   del     ABC    "
+    " del 123",
+    "del 123 ",
+    " del 123 "
 };
 
-static const char info_syntaticanalyser_valid_testcases[16][20] =
+static const char info_syntaticanalyser_valid_testcases[15][11] =
 {
     "info 1",
+    "info 0",
+    "info 00",
+    "info 000",
+    " info 1",
+    "info 1 ",
+    " info 1 ",
     "info 12",
+    " info 12",
+    "info 12 ",
+    " info 12 ",
     "info 123",
-    "info A",
-    "info AB",
-    "info ABC",
-    "info  A",
-    "info  AB",
-    "info  ABC",
-    "info  A ",
-    "info  AB ",
-    "info  ABC ",
-    " info  A",
-    " info  AB",
-    " info  ABC",
-    "   info     ABC    "
+    " info 123",
+    "info 123 ",
+    " info 123 "
 };
 
 static const char query_syntaticanalyser_valid_testcases[58][56] =
@@ -133,7 +129,7 @@ static const char terminate_syntaticanalyser_valid_testcases[5][12] =
     "    000    "
 };
 
-static const char add_syntaticanalyser_invalid_testcases[25][67] =
+static const char add_syntaticanalyser_invalid_testcases[27][67] =
 {
     "",
     "                                             ",
@@ -145,6 +141,8 @@ static const char add_syntaticanalyser_invalid_testcases[25][67] =
     "adD Carlos Irineu 99/88/9999 +00-00-0000-0000 444",
     "aDD Carlos Irineu 99/88/9999 +00-00-0000-0000 444",
     "add",
+    "add A João Silva 01/02/2020 +51-33-9999-9988",
+    "add BBB Carlos Irineu 99/88/9999 +00-00-0000-0000",
     "add Carlos Irineu 99/88/9999 +00-00-0000-0000 444",
     "444 Carlos Irineu 99/88/9999 +00-00-0000-0000",
     "add Gustavo Gustavo 01/01/1960 +55-21-0190-0190",
@@ -162,13 +160,17 @@ static const char add_syntaticanalyser_invalid_testcases[25][67] =
     "add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190 outro param"
 };
 
-static const char del_syntaticanalyser_invalid_testcases[18][96] =
+static const char del_syntaticanalyser_invalid_testcases[25][96] =
 {
     "",
+    "   ",
     "del ",
     " del",
     "del",
     "123 del",
+    "del a",
+    "del ab",
+    "del abc",
     "dell 123",
     "deel 123",
     "DEL 123",
@@ -180,16 +182,33 @@ static const char del_syntaticanalyser_invalid_testcases[18][96] =
     " del 1234",
     " del     1234",
     " del     1234  ",
+    "del 1 aproveita e add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
+    "del 12 aproveita e add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
+    "del 123 aproveita e add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
     "del ABC aproveita e add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190",
     "del ABC aproveita del 123 junto e também add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190"
 };
 
-static const char info_syntaticanalyser_invalid_testcases[20][96] =
+static const char info_syntaticanalyser_invalid_testcases[34][96] =
 {
     "",
+    "   ",
     "info ",
     " info",
     "info",
+    "info A",
+    "info AB",
+    "info ABC",
+    "info  A",
+    "info  AB",
+    "info  ABC",
+    "info  A ",
+    "info  AB ",
+    "info  ABC ",
+    " info  A",
+    " info  AB",
+    " info  ABC",
+    "   info     ABC    ",
     "123 info",
     "infoo 123",
     "iinfo 123",
@@ -281,8 +300,10 @@ static const char query_syntaticanalyser_invalid_testcases[69][59] =
     "query pn:+55-21-4444-0190 bd:01/01/1960 pn:+55-21-4444-0190"
 };
 
-static const char terminate_syntaticanalyser_invalid_testcases[8][23] =
+static const char terminate_syntaticanalyser_invalid_testcases[10][23] =
 {
+    "",
+    "   ",
     "000 termina aí",
     "OOO",
     "001",
@@ -301,7 +322,7 @@ void test_unittests_desafio_1(void)
 
     // Testa cenários para os quais o analisador sintático 'addcommandlexicalanalyser' deve
     // validar a sentença como CORRETA (TRUE).
-    for(int i = 0; i < 14; i++)
+    for(int i = 0; i < 12; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_valid_testcases[i], &individuo);
@@ -319,7 +340,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'delcommandlexicalanalyser' deve
     // validar a sentença como CORRETA (TRUE).
     printf("\n");
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < 15; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_valid_testcases[i], &individuo);
@@ -337,7 +358,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'infocommandlexicalanalyser' deve
     // validar a sentença como CORRETA (TRUE).
     printf("\n");
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < 15; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_valid_testcases[i], &individuo);
@@ -390,7 +411,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'addcommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
-    for(int i = 0; i < 25; i++)
+    for(int i = 0; i < 27; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = addcommandlexicalanalyser(add_syntaticanalyser_invalid_testcases[i], &individuo);
@@ -408,7 +429,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'delcommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
-    for(int i = 0; i < 18; i++)
+    for(int i = 0; i < 25; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = delcommandlexicalanalyser(del_syntaticanalyser_invalid_testcases[i], &individuo);
@@ -426,7 +447,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'infocommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
-    for(int i = 0; i < 20; i++)
+    for(int i = 0; i < 34; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         BOOL ret = infocommandlexicalanalyser(info_syntaticanalyser_invalid_testcases[i], &individuo);
@@ -462,7 +483,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários para os quais o analisador sintático 'terminatecommandlexicalanalyser' deve
     // validar a sentença como INCORRETA (FALSE).
     printf("\n");
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 10; i++)
     {
         BOOL ret = terminatecommandlexicalanalyser(terminate_syntaticanalyser_invalid_testcases[i]);
         printf("%s: Valor esperado: FALSE. Valor retornado: %s. Analisador sintático 'terminate' para a sentença '%s'.\n",
@@ -479,7 +500,7 @@ void test_unittests_desafio_1(void)
     // Testa cenários onde o comando 'addcommandlexicalanalyser' deve
     // com sucesso criar um novo indivíduo.
     printf("\n");
-    for(int i = 0; i < 14; i++)
+    for(int i = 0; i < 12; i++)
     {
         stIndividuo individuo = { .paramId = "", .firstName = "", .lastName = "", .birthday = "", .phone = ""};
         addcommandlexicalanalyser(add_syntaticanalyser_valid_testcases[i], &individuo);

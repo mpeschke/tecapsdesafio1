@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "desafio1.h"
+#include <errno.h>
 
 /*
  *
@@ -29,7 +30,8 @@ int searchdatabaserecord(const stIndividuo *const pindividuo)
 }
 
 // Algoritmo clássico de ordenamento (sorting), usando um elemento
-// temporário para fazer uma troca de elementos.
+// temporário para fazer uma troca de elementos. Essa função ordena
+// todos os indivíduos no banco de dados por ID, em ordem crescente.
 void sortdatabase(void)
 {
     for (int i = 0; i < MAXDATABASESIZE; ++i)
@@ -55,6 +57,13 @@ void sortdatabase(void)
  * 'token' = um item que esteja separados dos outros por um ou mais espaços.
  * 'verbo' = o primeiro token, que identifica o tipo de comando
  * 'parâmetro' = todos os outros tokens, após o token de verbo.
+ *
+ * Exemplo:
+ *
+ * add               123               Igor               Borges               25/12/1990               +55-11-2222-3333
+ * ^                 ^                 ^                  ^                    ^                        ^
+ * |                 |                 |                  |                    |                        |
+ * token (verbo)     token (parâmetro) token (parâmetro)  token (parâmetro)    token (parâmetro)        token (parâmetro)
 */
 static const char SENTENCETOKENSEPARATOR = ' ';
 
@@ -73,7 +82,21 @@ static const int DESCRPOSITIONVERBINFO = 2;
 static const int DESCRPOSVERBQUERY = 3;
 static const int DESCRPOSVERBTERMINATE = 4;
 
-// A partir do cursor inicial fornecido, avança até encontrar o próximo token.
+/* A partir do cursor inicial fornecido, avança até encontrar o próximo token.
+ *
+ * Exemplo:
+ *          10        20        30        40        50        60        70        80        90        100       110
+ *          |         |         |         |         |         |         |         |         |         |         |
+ * 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+ * add  ^            123               Igor               Borges               25/12/1990               +55-11-2222-3333
+ * ^    |            ^                 ^                  ^                    ^                        ^
+ * |    |            |                 |                  |                    |                        |
+ * token|(verbo)     token (parâmetro) token (parâmetro)  token (parâmetro)    token (parâmetro)        token (parâmetro)
+ *      |            |
+ *      *pinitialposition = 6.
+ *                   |
+ *                   função retorna posição do próximo token, '123' = 19.
+*/
 int advancetonexttoken(const char *const    sentence,
                        const int *const     pinitialposition,
                        const int *const     psentencesize)
@@ -89,8 +112,22 @@ int advancetonexttoken(const char *const    sentence,
     return i;
 }
 
-// Copia o token para um buffer, identificando também onde
-// começa e onde termina esse token na sentença.
+/* Copia o token para um buffer, identificando também onde termina esse token na sentença.
+ *
+ * Exemplo:
+ *          10        20        30        40        50        60        70        80        90        100       110
+ *          |         |         |         |         |         |         |         |         |         |         |
+ * 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+ * add  ^            123               Igor               Borges               25/12/1990               +55-11-2222-3333
+ * ^    |              ^               ^                  ^                    ^                        ^
+ * |    |              |               |                  |                    |                        |
+ * token|(verbo)     token (parâmetro) token (parâmetro)  token (parâmetro)    token (parâmetro)        token (parâmetro)
+ *      |              |
+ *      *pposicaoleiturainicial = 6.
+ *                     |
+ *                     *pposicaoleiturafinal = 21.
+ *                   token = '123'
+*/
 BOOL getsentencetoken(const int* const  pposicaoleiturainicial,
                       int*              pposicaoleiturafinal,
                       const char* const sentence,
@@ -125,8 +162,26 @@ BOOL getsentencetoken(const int* const  pposicaoleiturainicial,
     return (j != -1);
 }
 
-// Combina 'advancetonexttoken' e 'getsentencetoken' para facilitar a sequência de leitura
-// consecutiva dos tokens numa mesma sentença.
+/* Combina 'advancetonexttoken' e 'getsentencetoken' para facilitar a sequência de leitura
+ * consecutiva dos tokens numa mesma sentença.
+ * Copia o token para um buffer, identificando também onde termina esse token na sentença.
+ *
+ * Exemplo:
+ *          10        20        30        40        50        60        70        80        90        100       110
+ *          |         |         |         |         |         |         |         |         |         |         |
+ * 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+ * add  ^            123               Igor               Borges               25/12/1990               +55-11-2222-3333
+ * ^    |            ^ ^               ^                  ^                    ^                        ^
+ * |    |            | |               |                  |                    |                        |
+ * token|(verbo)     token (parâmetro) token (parâmetro)  token (parâmetro)    token (parâmetro)        token (parâmetro)
+ *      |            | |
+ *      *pposicaoleiturainicial = 6.
+ *                   |
+ *                   *pposicaoleiturainicial = 19.
+ *                     |
+ *                     *pposicaoleiturafinal = 21.
+ *                   token = '123'
+*/
 BOOL getnextsentencetoken(int* const        pposicaoleiturainicial,
                           int*              pposicaoleiturafinal,
                           const char* const sentence,
@@ -151,11 +206,25 @@ static const int MAXADDSENTENCESIZE = 137;
 BOOL validatetokenaddverb(const char *const verb)
 {return (strcmp(commandverbs[DESCRPOSVERBADD], verb) == 0);}
 
-// TODO: corrigir ID, só pode ser numérico.
+/*
+ * Contornando o clássico problema de conversão léxica de string
+ * para números. A função atoi() é bem conhecida por inúmeras falhas,
+ * sendo a mais infame o retorno do mesmo número '0' quando a string
+ * é igual a '0' ou 'SHIT', por exemplo.
+ * Para evitar isso, utilizamos 'strtol', que provê um mecanismo
+ * sólido para identificar falha ou sucesso na conversão léxica.
+*/
 BOOL validatetokenaddcommandidparam(const char *const idparam)
 {
+    char *eptr;
     int length = strlen(idparam);
-    return (length > 0 && length <= INDIVIDUOMAXID);
+    errno = 0;
+    strtol(idparam, &eptr, 10); // Número de base 10.
+    // Testa somente EINVAL (erro de conversão), e não ERANGE (erro de intervalo)
+    // porque o buffer é pequeno demais para ter números muito grandes.
+    BOOL conversiontonum = (errno != EINVAL) && (idparam != eptr);
+
+    return ((length > 0) && (length <= INDIVIDUOMAXID) && conversiontonum);
 }
 
 BOOL validatetokenaddcommandfirstnameparam(const char *const firstnameparam)
@@ -170,6 +239,18 @@ BOOL validatetokenaddcommandbirthdayparam(const char *const birthdayparam)
 BOOL validatetokenaddcommandphoneparam(const char *const phoneparam)
 {return (strlen(phoneparam) == INDIVIDUOMAXPHONE);}
 
+/*
+* Dada a peculiaridade incomum do enunciado do exercício, no qual é possível
+* identificar a existência de um indivíduo já cadastrado pelo seu ID através
+* de um comando 'add' lexicamente INCORRETO:
+*
+* 'add 123 Joao Souza 11/10/2000 103-99'
+*                                ^
+*                                |
+*                                token de telefone inválido
+*
+* temos que utilizar um analisador léxico customizado para esse cenário.
+*/
 BOOL addcommandlexicalanalyser_idonly(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
@@ -208,11 +289,12 @@ BOOL addcommandlexicalanalyser_idonly(const char *const sentence, stIndividuo* p
 * IMPORTANTE:
 *
 * Embora os exemplos de comandos no enunciado do desafio possibilitem inferir
-* formato e tamanho de ID, aniversário e telefone, não há menção a tamanho máximo
+* tipo, formato e tamanho de ID, aniversário e telefone, não há menção a tamanho máximo
 * de nome e sobrenome. Dessa forma, para evitar problemas de buffers muito longos,
-* vamos assumir que nome e sobrenome têm um máximo de 50 caracteres.
+* vamos impor um limite de 50 caracteres para nome e sobrenome.
 *
-* TODO: corrigir ID, só pode ser numérico.
+* Assume-se também, pelo enunciado, que o ID é numérico, de 000 a 999.
+* O sistema vai armazenar '0', '00' e '000' como válidos e distintos.
 */
 BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
@@ -366,6 +448,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
+    // Primeiro token deve ser o verbo do comando 'info'.
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
     if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
         return FALSE;
@@ -373,6 +456,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
     if(!validatetokeninfoverb(tokenbuffer))
         return FALSE;
 
+    // Próximo token deve ser o ID do indivíduo.
     if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
         return FALSE;
 
@@ -381,7 +465,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
 
     strcpy(pindividuo->paramId, tokenbuffer);
 
-    // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando info.
+    // Não pode haver mais tokens. Se encontrados, com ou sem valor léxico, a sentença é considerada inválida.
     if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
         return FALSE;
 
@@ -420,48 +504,51 @@ static const char* QUERYPN = "pn:";
 BOOL validatetokenqueryverb(const char *const verb)
 {return (strcmp(commandverbs[DESCRPOSVERBQUERY], verb) == 0);}
 
-BOOL validatetokenqueryparamrules(const char *const param, char *const queryparam, const unsigned long maxqueryparamsize)
+// Valida o token e copia para o campo de parâmetro.
+BOOL validatetokenqueryparamrules(const char *const token, char *const queryparam, const unsigned long maxqueryparamsize)
 {
-    int size = strlen(param);
+    int size = strlen(token);
 
-    // Uma validação anterior já preencheu o primeiro nome - significa que há duplicidade de parâmetros.
+    // Uma validação anterior já preencheu esse parâmetro - 2 ou mais tokens têm o mesmo significado léxico (ambiguidade).
     if(strlen(queryparam) != 0)
         return FALSE;
 
-    // Valida o tamanho máximo do valor desse parâmetro de primeiro nome.
-    if(strlen(param) > (maxqueryparamsize))
+    // Valida o tamanho máximo do token.
+    if(strlen(token) > (maxqueryparamsize))
         return FALSE;
 
+    // Copia o conteúdo do token para o parâmetro.
     for(int i = (QUERYPARAMIDSIZE); i < size; i++)
-        queryparam[i-QUERYPARAMIDSIZE] = param[i];
+        queryparam[i-QUERYPARAMIDSIZE] = token[i];
     return TRUE;
 }
 
-BOOL validatetokenqueryparam(const char *const param, stQuery* pQry)
+BOOL validatetokenqueryparam(const char *const token, stQuery* pQry)
 {
-    int size = strlen(param);
+    int size = strlen(token);
 
-    if(size <= QUERYPARAMIDSIZE) // O parâmetro deve ter no mínimo o identificador de busca 'xx:' e 1 caracter de busca.
+    // O parâmetro deve ter no mínimo o identificador de busca 'xx:' e 1 caracter de busca.
+    if(size <= QUERYPARAMIDSIZE)
         return FALSE;
 
     char paramtype[QUERYPARAMIDSIZE] = {'\0'};
-    strncpy(paramtype, param, QUERYPARAMIDSIZE);
+    strncpy(paramtype, token, QUERYPARAMIDSIZE);
 
     // Query do primeiro nome.
     if (strcmp(paramtype, QUERYFN) == 0)
-        return validatetokenqueryparamrules(param, pQry->fn, MAXQUERYLNSIZE);
+        return validatetokenqueryparamrules(token, pQry->fn, MAXQUERYLNSIZE);
 
     // Query do último nome.
     if (strcmp(paramtype, QUERYLN) == 0)
-        return validatetokenqueryparamrules(param, pQry->ln, MAXQUERYLNSIZE);
+        return validatetokenqueryparamrules(token, pQry->ln, MAXQUERYLNSIZE);
 
     // Query do aniversário.
     if (strcmp(paramtype, QUERYBD) == 0)
-        return validatetokenqueryparamrules(param, pQry->bd, MAXQUERYBDSIZE);
+        return validatetokenqueryparamrules(token, pQry->bd, MAXQUERYBDSIZE);
 
     // Query do telefone.
     if (strcmp(paramtype, QUERYPN) == 0)
-        return validatetokenqueryparamrules(param, pQry->pn, MAXQUERYPNSIZE);
+        return validatetokenqueryparamrules(token, pQry->pn, MAXQUERYPNSIZE);
 
     // Não foi encontrada nenhuma query válida.
     return FALSE;
@@ -482,6 +569,7 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
+    // Primeiro token deve ser o verbo do comando 'query'.
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
     if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &maxquerysentencesize))
         return FALSE;
@@ -491,6 +579,9 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
 
     BOOL error = FALSE;
 
+    // Ao contrário dos outros comando, 'query' não requer um sequência de
+    // seus parâmetros. Portanto, utilizaremos uma instância de stIndividuo
+    // para validar os parâmetros do comando (sentido léxico, ambiguidade, etc).
     do
     {
         if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &maxquerysentencesize))
@@ -502,7 +593,7 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
     if(error)
         return FALSE;
 
-    // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando info.
+    // Não pode haver mais tokens. Se encontrados, com ou sem valor léxico, a sentença é considerada inválida.
     if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &maxquerysentencesize))
         return FALSE;
 
@@ -639,7 +730,10 @@ void infocommand(const stIndividuo *const pindividuo)
 */
 void querycommand(const stQuery *const pquery)
 {
+    // Antes de executar a busca, ordena o banco de dados - assim o resultado sempre
+    // sairá ordenado.
     sortdatabase();
+
     BOOL match = FALSE;
     BOOL searchbd = strlen(pquery->bd);
     BOOL searchfn = strlen(pquery->fn);
@@ -672,13 +766,20 @@ BOOL terminatecommand(void)
 {return TRUE;}
 
 /*
- *
- ***************************************CRUD ENGINE*******************************************
- *
+ * fgets, ao contrário da função (insegura) scanf, inclui
+ * os caracteres terminadores de linha (\n no Linux, \r\n no Windows).
+ * Essa função coloca um caracter nulo na primeira instância desses
+ * caracteres terminadores, garantindo um buffer contendo apenas
+ * o token da sentença.
 */
 void zero_fgets_trailchars(char* buff)
 {buff[strcspn(buff, "\r\n")] = 0;}
 
+/*
+ *
+ ***************************************CRUD ENGINE*******************************************
+ *
+*/
 void iniciaCRUD(void)
 {
     BOOL terminate = FALSE;
