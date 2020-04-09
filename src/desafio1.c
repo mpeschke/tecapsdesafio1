@@ -1,9 +1,14 @@
 #include <stdlib.h>
 #include "desafio1.h"
 
-// Número aleatório máximo definido. Como a APS foi publicada
-// antes da aula de alocação dinâmica de memória,
-// vamos limitar a memória de stack a 100 registros máximos.
+/*
+ *
+ ***************************** DATABASE*******************************************************
+ *
+ * Número aleatório máximo definido. Como a APS foi publicada
+ * antes da aula de alocação dinâmica de memória,
+ * vamos limitar a memória de stack a 100 registros máximos.
+*/
 #define MAXDATABASESIZE 100
 
 // O intervalo dos índices vai de 0 a 99 (MAXDATABASE, zero based index).
@@ -13,81 +18,24 @@
 // 'Banco de dados' de indivíduos.
 stIndividuo database[MAXDATABASESIZE];
 
-/*
- *
- ***************************ADD COMMAND*******************************************************
- *
- * Exemplo de comando 'add': 'add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190'
- * 'add' = 3, 'id' = 3(máximo de 3), 'firstname' = 7(máximo de 50), 'lastname' = 10(máximo de 50),
- * 'birthday' = 10, 'phone' = 16, espaços = 5.
- * Máximo comprimento da string: 3 + 3 + 50 + 50 + 10 + 16 + 5 = 137
-*/
-static const int MAXADDSENTENCESIZE = 137;
+int searchdatabaserecord(const stIndividuo *const pindividuo)
+{
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+            return i;
+
+    return RECORDNOTFOUNDDATABASEINDEX;
+}
 
 /*
  *
- ***************************DEL COMMAND*******************************************************
+ *********************ANALISADOR LÉXICO (TOKENIZADOR)*****************************************
  *
- * Exemplo de comando 'del': 'del 123'
- * 'del' = 3, 'id' = 3(mínimo de 1, máximo de 3), espaços = 1.
- * Máximo comprimento da string: 3 + 3 + 1 = 7
- * Mínimo comprimento da string: 3 + 1 + 1 = 5
+ * Os analisadores léxicos consideram o espaço
+ * como separador dos tokens (inferido do enunciado
+ * do desafio e também padrão dos sistemas operacionais
+ * para aplicações de linha de comando).
 */
-static const int MAXDELSENTENCESIZE = 7;
-static const int MINDELSENTENCESIZE = 5;
-
-/*
- *
- **************************INFO COMMAND*******************************************************
- *
- * Exemplo de comando 'info': 'info 123'
- * 'info' = 4, 'id' = 3(máximo de 3), espaços = 1.
- * Máximo comprimento da string: 4 + 3 + 1 = 8
-*/
-static const int MAXINFOSENTENCESIZE = 8;
-static const int MININFOSENTENCESIZE = 6;
-
-/*
- *
- *************************QUERY COMMAND*******************************************************
- *
- * Exemplo de comando 'query': 'query fn:João ln:Ninguém 123 bd:00/00/0000 pn:+00-00-0000-0000'
- * 'query' = 5, 'fn:FIRSTNAME' = 3 ('fn:') + (tamanho máximo de primeiro nome: 50),
- * 'ln:LASTNAME' = 3 ('ln:') + (tamanho máximo de sobrenome: 50),
- * 'bd:00/00/0000' = 3 ('bd:') + (tamanho máximo de birthday: 10),
- * 'pn:+00-00-0000-0000' = 3 ('pn:') + (tamanho máximo de phone: 16), espaços = 5.
- * Máximo comprimento da string: 5 + 3 + 50 + 3 + 50 + 3 + 10 + 3 + 10 + 3 + 16 + 5 = 148
-*/
-#define QUERYPARAMIDSIZE 3
-#define MAXQUERYFNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
-#define MAXQUERYLNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
-#define MAXQUERYBDSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXBIRTHDAY)
-#define MAXQUERYPNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXPHONE)
-#define MAXQUERYSENTENCESIZE (5 + MAXQUERYFNSIZE + MAXQUERYLNSIZE + MAXQUERYBDSIZE + MAXQUERYPNSIZE)
-static const char* QUERYFN = "fn:";
-static const char* QUERYLN = "ln:";
-static const char* QUERYBD = "bd:";
-static const char* QUERYPN = "pn:";
-// Mínimo comprimento da string: 5 + 1 + 3 + 1 = 10
-#define MINQUERYSENTENCESIZE (5 + 1 + QUERYPARAMIDSIZE + 1)
-
-/*
- *
- *********************TERMINATE COMMAND*******************************************************
- *
-*/
-// Exemplo de comando 'terminate': '000' (máximo de 3 caracteres).
-#define TERMINATEPARAMIDSIZE 3
-
-// Para auxiliar o programa a utilizar o maior buffer disponível
-// para interpretar lexicamente as sentenças, definimos qual é o maior
-// buffer dos comandos implementados até aqui:
-#define MAXSENTENCESIZE MAXQUERYSENTENCESIZE
-
-// Os analisadores léxicos consideram o espaço
-// como separador dos tokens (inferido do enunciado
-// do desafio e também padrão dos sistemas operacionais
-// para aplicações de linha de comando).
 static const char SENTENCETOKENSEPARATOR = ' ';
 
 /*
@@ -109,10 +57,9 @@ static const int DESCRPOSVERBQUERY = 3;
 static const int DESCRPOSVERBTERMINATE = 4;
 
 /*
- * Funções que compõem um analisador léxico: uma 'sentença' (sentence) é composta por palavras
+ * Definições que fazem parte de um analisador léxico: uma 'sentença' (sentence) é composta por palavras
  * (genericamente, 'tokens'). Cada token é analisado para identificar seu sentido dentro
- * do contexto do comando. Quem no final faz a análise para entender o 'significado' da sentença,
- * no contexto dos tokens econtrados, é o analisador léxico (lexical analyser).
+ * do contexto do comando.
  */
 int advancetonexttoken(const char *const sentence, const int *const pinitialposition, const int *const psentencesize)
 {
@@ -134,7 +81,7 @@ BOOL getsentencetoken(const int* const  pposicaoleiturainicial,
                       char*             token,
                       const int* const  pmaxsizetoken)
 {
-    // Limpa todo o buffer provido para receber o token.
+    // Limpa o buffer para receber um novo token.
     memset((void*)token, '\0', *pmaxsizetoken);
 
     int i = 0;
@@ -161,6 +108,17 @@ BOOL getsentencetoken(const int* const  pposicaoleiturainicial,
     return (j != -1);
 }
 
+/*
+ *
+ *********************ANALISADOR LÉXICO (COMANDO 'ADD')***************************************
+ *
+ * Exemplo de comando 'add': 'add 123 Roberto Nascimento 01/01/1960 +55-21-0190-0190'
+ * 'add' = 3, 'id' = 3(máximo de 3), 'firstname' = 7(máximo de 50), 'lastname' = 10(máximo de 50),
+ * 'birthday' = 10, 'phone' = 16, espaços = 5.
+ * Máximo comprimento da string: 3 + 3 + 50 + 50 + 10 + 16 + 5 = 137
+*/
+static const int MAXADDSENTENCESIZE = 137;
+
 BOOL validatetokenaddverb(const char *const verb)
 {return (strcmp(commandverbs[DESCRPOSVERBADD], verb) == 0);}
 
@@ -181,102 +139,6 @@ BOOL validatetokenaddcommandbirthdayparam(const char *const birthdayparam)
 
 BOOL validatetokenaddcommandphoneparam(const char *const phoneparam)
 {return (strlen(phoneparam) == INDIVIDUOMAXPHONE);}
-
-BOOL validatetokendelverb(const char *const verb)
-{return (strcmp(commandverbs[DESCRPOSVERBDEL], verb) == 0);}
-
-BOOL validatetokendelcommandidparam(const char *const idparam)
-{return validatetokenaddcommandidparam(idparam);}
-
-BOOL validatetokeninfoverb(const char *const verb)
-{return (strcmp(commandverbs[DESCRPOSITIONVERBINFO], verb) == 0);}
-
-BOOL validatetokeninfocommandidparam(const char *const idparam)
-{return validatetokenaddcommandidparam(idparam);}
-
-BOOL validatetokenqueryverb(const char *const verb)
-{return (strcmp(commandverbs[DESCRPOSVERBQUERY], verb) == 0);}
-
-BOOL validatetokenterminateverb(const char *const verb)
-{return (strcmp(commandverbs[DESCRPOSVERBTERMINATE], verb) == 0);}
-
-BOOL validatetokenqueryparam(const char *const param, stQuery* pQry)
-{
-    int size = strlen(param);
-
-    if(size <= QUERYPARAMIDSIZE) // O parâmetro deve ter no mínimo o identificador de busca 'xx:' e 1 caracter de busca.
-        return FALSE;
-
-    char paramtype[QUERYPARAMIDSIZE] = {'\0'};
-    strncpy(paramtype, param, QUERYPARAMIDSIZE);
-
-    // Query do primeiro nome.
-    if (strcmp(paramtype, QUERYFN) == 0)
-    {
-        // Uma validação anterior já preencheu o primeiro nome - significa que há duplicidade de parâmetros.
-        if(strlen(pQry->fn) != 0)
-            return FALSE;
-
-        // Valida o tamanho máximo do valor desse parâmetro de primeiro nome.
-        if(strlen(param) > (MAXQUERYFNSIZE))
-            return FALSE;
-
-        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
-            pQry->fn[i-QUERYPARAMIDSIZE] = param[i];
-        return TRUE;
-    }
-
-    // Query do último nome.
-    if (strcmp(paramtype, QUERYLN) == 0)
-    {
-        // Uma validação anterior já preencheu o sobrenome - significa que há duplicidade de parâmetros.
-        if(strlen(pQry->ln) != 0)
-            return FALSE;
-
-        // Valida o tamanho máximo do valor desse parâmetro de sobrenome.
-        if(strlen(param) > (MAXQUERYLNSIZE))
-            return FALSE;
-
-        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
-            pQry->ln[i-QUERYPARAMIDSIZE] = param[i];
-        return TRUE;
-    }
-
-    // Query do aniversário.
-    if (strcmp(paramtype, QUERYBD) == 0)
-    {
-        // Uma validação anterior já preencheu o aniversário - significa que há duplicidade de parâmetros.
-        if(strlen(pQry->bd) != 0)
-            return FALSE;
-
-        // Valida o tamanho esperado do valor desse parâmetro de aniversário.
-        if(strlen(param) != (MAXQUERYBDSIZE))
-            return FALSE;
-
-        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
-            pQry->bd[i-QUERYPARAMIDSIZE] = param[i];
-        return TRUE;
-    }
-
-    // Query do telefone.
-    if (strcmp(paramtype, QUERYPN) == 0)
-    {
-        // Uma validação anterior já preencheu o telefone - significa que há duplicidade de parâmetros.
-        if(strlen(pQry->pn) != 0)
-            return FALSE;
-
-        // Valida o tamanho esperado do valor desse parâmetro de telefone.
-        if(strlen(param) != (MAXQUERYPNSIZE))
-            return FALSE;
-
-        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
-            pQry->pn[i-QUERYPARAMIDSIZE] = param[i];
-        return TRUE;
-    }
-
-    // Não foi encontrada nenhuma query válida.
-    return FALSE;
-}
 
 BOOL addcommandlexicalanalyser_idonly(const char *const sentence, stIndividuo* pindividuo)
 {
@@ -386,6 +248,24 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     return TRUE;
 }
 
+/*
+ *
+ *********************ANALISADOR LÉXICO (COMANDO 'DEL')***************************************
+ *
+ * Exemplo de comando 'del': 'del 123'
+ * 'del' = 3, 'id' = 3(mínimo de 1, máximo de 3), espaços = 1.
+ * Máximo comprimento da string: 3 + 3 + 1 = 7
+ * Mínimo comprimento da string: 3 + 1 + 1 = 5
+*/
+static const int MAXDELSENTENCESIZE = 7;
+static const int MINDELSENTENCESIZE = 5;
+
+BOOL validatetokendelcommandidparam(const char *const idparam)
+{return validatetokenaddcommandidparam(idparam);}
+
+BOOL validatetokendelverb(const char *const verb)
+{return (strcmp(commandverbs[DESCRPOSVERBDEL], verb) == 0);}
+
 BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
@@ -423,6 +303,23 @@ BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     return TRUE;
 }
 
+/*
+ *
+ *********************ANALISADOR LÉXICO (COMANDO 'INFO')**************************************
+ *
+ * Exemplo de comando 'info': 'info 123'
+ * 'info' = 4, 'id' = 3(máximo de 3), espaços = 1.
+ * Máximo comprimento da string: 4 + 3 + 1 = 8
+*/
+static const int MAXINFOSENTENCESIZE = 8;
+static const int MININFOSENTENCESIZE = 6;
+
+BOOL validatetokeninfoverb(const char *const verb)
+{return (strcmp(commandverbs[DESCRPOSITIONVERBINFO], verb) == 0);}
+
+BOOL validatetokeninfocommandidparam(const char *const idparam)
+{return validatetokenaddcommandidparam(idparam);}
+
 BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindividuo)
 {
     int sentencesize = strlen(sentence);
@@ -458,6 +355,116 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
         return FALSE;
 
     return TRUE;
+}
+
+/*
+ *
+ *********************ANALISADOR LÉXICO (COMANDO 'QUERY')*************************************
+ *
+ * Exemplo de comando 'query': 'query fn:João ln:Ninguém 123 bd:00/00/0000 pn:+00-00-0000-0000'
+ * 'query' = 5, 'fn:FIRSTNAME' = 3 ('fn:') + (tamanho máximo de primeiro nome: 50),
+ * 'ln:LASTNAME' = 3 ('ln:') + (tamanho máximo de sobrenome: 50),
+ * 'bd:00/00/0000' = 3 ('bd:') + (tamanho máximo de birthday: 10),
+ * 'pn:+00-00-0000-0000' = 3 ('pn:') + (tamanho máximo de phone: 16), espaços = 5.
+ * Máximo comprimento da string: 5 + 3 + 50 + 3 + 50 + 3 + 10 + 3 + 10 + 3 + 16 + 5 = 148
+*/
+#define QUERYPARAMIDSIZE 3
+#define MAXQUERYFNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
+#define MAXQUERYLNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXLASTNAME)
+#define MAXQUERYBDSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXBIRTHDAY)
+#define MAXQUERYPNSIZE (QUERYPARAMIDSIZE+INDIVIDUOMAXPHONE)
+#define MAXQUERYSENTENCESIZE (5 + MAXQUERYFNSIZE + MAXQUERYLNSIZE + MAXQUERYBDSIZE + MAXQUERYPNSIZE)
+static const char* QUERYFN = "fn:";
+static const char* QUERYLN = "ln:";
+static const char* QUERYBD = "bd:";
+static const char* QUERYPN = "pn:";
+// Mínimo comprimento da string: 5 + 1 + 3 + 1 = 10
+#define MINQUERYSENTENCESIZE (5 + 1 + QUERYPARAMIDSIZE + 1)
+
+// Para auxiliar o programa a utilizar o maior buffer disponível
+// para interpretar lexicamente as sentenças, definimos qual é o maior
+// buffer dos comandos implementados até aqui:
+#define MAXSENTENCESIZE MAXQUERYSENTENCESIZE
+
+BOOL validatetokenqueryverb(const char *const verb)
+{return (strcmp(commandverbs[DESCRPOSVERBQUERY], verb) == 0);}
+
+BOOL validatetokenqueryparam(const char *const param, stQuery* pQry)
+{
+    int size = strlen(param);
+
+    if(size <= QUERYPARAMIDSIZE) // O parâmetro deve ter no mínimo o identificador de busca 'xx:' e 1 caracter de busca.
+        return FALSE;
+
+    char paramtype[QUERYPARAMIDSIZE] = {'\0'};
+    strncpy(paramtype, param, QUERYPARAMIDSIZE);
+
+    // Query do primeiro nome.
+    if (strcmp(paramtype, QUERYFN) == 0)
+    {
+        // Uma validação anterior já preencheu o primeiro nome - significa que há duplicidade de parâmetros.
+        if(strlen(pQry->fn) != 0)
+            return FALSE;
+
+        // Valida o tamanho máximo do valor desse parâmetro de primeiro nome.
+        if(strlen(param) > (MAXQUERYFNSIZE))
+            return FALSE;
+
+        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
+            pQry->fn[i-QUERYPARAMIDSIZE] = param[i];
+        return TRUE;
+    }
+
+    // Query do último nome.
+    if (strcmp(paramtype, QUERYLN) == 0)
+    {
+        // Uma validação anterior já preencheu o sobrenome - significa que há duplicidade de parâmetros.
+        if(strlen(pQry->ln) != 0)
+            return FALSE;
+
+        // Valida o tamanho máximo do valor desse parâmetro de sobrenome.
+        if(strlen(param) > (MAXQUERYLNSIZE))
+            return FALSE;
+
+        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
+            pQry->ln[i-QUERYPARAMIDSIZE] = param[i];
+        return TRUE;
+    }
+
+    // Query do aniversário.
+    if (strcmp(paramtype, QUERYBD) == 0)
+    {
+        // Uma validação anterior já preencheu o aniversário - significa que há duplicidade de parâmetros.
+        if(strlen(pQry->bd) != 0)
+            return FALSE;
+
+        // Valida o tamanho esperado do valor desse parâmetro de aniversário.
+        if(strlen(param) != (MAXQUERYBDSIZE))
+            return FALSE;
+
+        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
+            pQry->bd[i-QUERYPARAMIDSIZE] = param[i];
+        return TRUE;
+    }
+
+    // Query do telefone.
+    if (strcmp(paramtype, QUERYPN) == 0)
+    {
+        // Uma validação anterior já preencheu o telefone - significa que há duplicidade de parâmetros.
+        if(strlen(pQry->pn) != 0)
+            return FALSE;
+
+        // Valida o tamanho esperado do valor desse parâmetro de telefone.
+        if(strlen(param) != (MAXQUERYPNSIZE))
+            return FALSE;
+
+        for(int i = (QUERYPARAMIDSIZE); i < size; i++)
+            pQry->pn[i-QUERYPARAMIDSIZE] = param[i];
+        return TRUE;
+    }
+
+    // Não foi encontrada nenhuma query válida.
+    return FALSE;
 }
 
 BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
@@ -506,6 +513,17 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
     return TRUE;
 }
 
+/*
+ *
+ *********************ANALISADOR LÉXICO (COMANDO 'TERMINATE')*********************************
+ *
+*/
+// Exemplo de comando 'terminate': '000' (máximo de 3 caracteres).
+#define TERMINATEPARAMIDSIZE 3
+
+BOOL validatetokenterminateverb(const char *const verb)
+{return (strcmp(commandverbs[DESCRPOSVERBTERMINATE], verb) == 0);}
+
 BOOL terminatecommandlexicalanalyser(const char *const sentence)
 {
     static const int terminatesentencesize = TERMINATEPARAMIDSIZE;
@@ -534,6 +552,11 @@ BOOL terminatecommandlexicalanalyser(const char *const sentence)
     return TRUE;
 }
 
+/*
+ *
+ ***************************************(COMANDO 'ADD')***************************************
+ *
+*/
 void addcommand(const stIndividuo *const pindividuo)
 {
     BOOL found = FALSE;
@@ -561,6 +584,37 @@ void addcommand(const stIndividuo *const pindividuo)
             }
 }
 
+/*
+ *
+ ***************************************(COMANDO 'DEL')***************************************
+ *
+*/
+void delcommand(const stIndividuo *const pindividuo)
+{
+    BOOL found = FALSE;
+    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
+    {
+        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
+        {
+            found = TRUE;
+            strcpy(database[i].phone, "");
+            strcpy(database[i].paramId, "");
+            strcpy(database[i].birthday, "");
+            strcpy(database[i].firstName, "");
+            strcpy(database[i].lastName, "");
+            break;
+        }
+    }
+
+    if(!found)
+        printf("ID %s nao existente.\n", pindividuo->paramId);
+}
+
+/*
+ *
+ ***************************************(COMANDO 'INFO')**************************************
+ *
+*/
 void infocommand(const stIndividuo *const pindividuo)
 {
     BOOL found = FALSE;
@@ -582,6 +636,11 @@ void infocommand(const stIndividuo *const pindividuo)
         printf("ID %s nao existente\n", pindividuo->paramId);
 }
 
+/*
+ *
+ ***************************************(COMANDO 'QUERY')*************************************
+ *
+*/
 void querycommand(const stQuery *const pquery)
 {
     // TODO: ordenar o resultado antes de imprimir na tela.
@@ -608,39 +667,19 @@ void querycommand(const stQuery *const pquery)
     printf("\n");
 }
 
-void delcommand(const stIndividuo *const pindividuo)
-{
-    BOOL found = FALSE;
-    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
-    {
-        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
-        {
-            found = TRUE;
-            strcpy(database[i].phone, "");
-            strcpy(database[i].paramId, "");
-            strcpy(database[i].birthday, "");
-            strcpy(database[i].firstName, "");
-            strcpy(database[i].lastName, "");
-            break;
-        }
-    }
-
-    if(!found)
-        printf("ID %s nao existente.\n", pindividuo->paramId);
-}
-
-int searchdatabaserecord(const stIndividuo *const pindividuo)
-{
-    for(unsigned long i = 0; i < MAXDATABASESIZE; i++)
-        if(strcmp(pindividuo->paramId, database[i].paramId) == 0)
-            return i;
-
-    return RECORDNOTFOUNDDATABASEINDEX;
-}
-
+/*
+ *
+ ***************************************(COMANDO 'TERMINATE')*********************************
+ *
+*/
 BOOL terminatecommand(void)
 {return TRUE;}
 
+/*
+ *
+ ***************************************CRUD ENGINE*******************************************
+ *
+*/
 void zero_fgets_trailchars(char* buff)
 {buff[strcspn(buff, "\r\n")] = 0;}
 
