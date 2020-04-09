@@ -8,7 +8,7 @@ Linux (qualquer distro)
 CMake e GCC(ou CLang)
 
 Por exemplo, no Ubuntu:  
-*#apt install -y cmake make gcc*
+*#apt install -y git cmake make gcc*
 
 ## Instruções para executar o Desafio 1
 
