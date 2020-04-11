@@ -2,7 +2,9 @@
 #define CABECALHO_DESAFIO1_H_INCLUDED
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 // Não há tipo booleano em C, portanto
 // vamos criar um para facilitar a leitura

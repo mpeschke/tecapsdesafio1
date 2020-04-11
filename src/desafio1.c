@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include "desafio1.h"
-#include <errno.h>
 
 /*
  *
