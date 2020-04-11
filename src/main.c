@@ -1,10 +1,9 @@
 #include <stdio.h>
-#include "tests_desafio1.h"
-#include "desafio2.h"
+#include "desafio1.h"
 
 int main()
 {
-    test_unittests_desafio_1();
+    iniciaCRUD();
 
     return 0;
 }
