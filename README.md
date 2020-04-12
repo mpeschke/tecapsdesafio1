@@ -16,19 +16,17 @@ Por exemplo, no Ubuntu:
 
 Num terminal:
 
-*$git clone ssh://git@github.com/mpeschke/tecdesafiosaps.git* (via ssh) ou  
-*$git clone https://github.com/mpeschke/tecdesafiosaps.git* (pergunta usuário e senha)  
+*$git clone ssh://git@github.com/mpeschke/tecapsdesafio1.git* (via ssh) ou
+*$git clone https://github.com/mpeschke/tecapsdesafio1.git* (pergunta usuário e senha)
 *$cd tecapsdesafio1/*  
 *$mkdir tecapsdesafio1_build*  
 *$cd tecapsdesafio1_build/*  
 *$cmake ../.*  
 *$cmake --build .*  
-*$./desafio1*
+*$./tecapsdesafio1*
 
 ## Passo 3: Instruções para executar os testes unitários do Desafio 1
 
-Execute o passo 2.
-
-A partir da linha de comando, execute:
+Execute o passo 2, e sem sair da mesma sessão do terminal, execute:
 
 *$ctest*
