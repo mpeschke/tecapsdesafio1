@@ -2,7 +2,6 @@
 * Desafio 3
 * Matheus Peschke de Azevedo - RA: 20396209
 * Gustavo Caldas de Souza - RA: 21352329
-* Fulano de
 */
 #include "tests_desafio1.h"
 
