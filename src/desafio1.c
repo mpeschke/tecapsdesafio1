@@ -1,3 +1,9 @@
+/*
+* Desafio 3
+* Matheus Peschke de Azevedo - RA: 20396209
+* Gustavo Caldas de Souza - RA: 21352329
+* Fulano de
+*/
 #include "desafio1.h"
 
 /*
@@ -51,7 +57,7 @@ void sortdatabase(void)
  *
  * Definições que fazem parte de um analisador léxico:
  *
- * 'sentença' = linha de comando
+ * 'sentença' = a linha de comando com todos os seus parâmetros
  * 'token' = um item que esteja separados dos outros por um ou mais espaços.
  * 'verbo' = o primeiro token, que identifica o tipo de comando
  * 'parâmetro' = todos os outros tokens, após o token de verbo.
@@ -820,3 +826,5 @@ void iniciaCRUD(void)
             terminate = terminatecommand();
     }
 }
+
+// li e concordo com os termos da aps
