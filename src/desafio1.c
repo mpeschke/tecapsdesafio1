@@ -803,11 +803,11 @@ void iniciaCRUD(void)
             .pn = {'\0'}
         };
         stIndividuo individuo = {
-            .paramId = "",
-            .firstName = "",
-            .lastName = "",
-            .birthday = "",
-            .phone = ""
+            .paramId = {'\0'},
+            .firstName = {'\0'},
+            .lastName = {'\0'},
+            .birthday = {'\0'},
+            .phone = {'\0'}
         };
 
         fgets(BUFF, MAXSENTENCESIZE, stdin);
