@@ -516,18 +516,18 @@ BOOL validatetokenqueryverb(const char *const verb)
 // Valida o token e copia para o campo de parâmetro.
 BOOL validatetokenqueryparamrules(const char *const token, char *const queryparam, const unsigned long maxqueryparamsize)
 {
-    int size = strlen(token);
+    unsigned long size = strlen(token);
 
     // Uma validação anterior já preencheu esse parâmetro - 2 ou mais tokens têm o mesmo significado léxico (ambiguidade).
     if(strlen(queryparam) != 0)
         return FALSE;
 
     // Valida o tamanho máximo do token.
-    if(strlen(token) > (maxqueryparamsize))
+    if(size > (maxqueryparamsize))
         return FALSE;
 
     // Copia o conteúdo do token para o parâmetro.
-    for(int i = (QUERYPARAMIDSIZE); i < size; i++)
+    for(unsigned long i = (QUERYPARAMIDSIZE); i < size; i++)
         queryparam[i-QUERYPARAMIDSIZE] = token[i];
     return TRUE;
 }
@@ -573,7 +573,7 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
     if (sentencesize > MAXQUERYSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXQUERYSENTENCESIZE];
+    char tokenbuffer[MAXQUERYSENTENCESIZE] = {'\0'};
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
@@ -627,7 +627,7 @@ BOOL terminatecommandlexicalanalyser(const char *const sentence)
     if (sentencesize < TERMINATEPARAMIDSIZE)
         return FALSE;
 
-    char tokenbuffer[TERMINATEPARAMIDSIZE];
+    char tokenbuffer[TERMINATEPARAMIDSIZE] = {'\0'};
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
@@ -775,6 +775,29 @@ BOOL terminatecommand(void)
 {return TRUE;}
 
 /*
+ * Infelizmente o Ruindows considera como terminador de
+ * linha dois caracteres, '\r' e '\n'. Como não sabemos se o
+ * exercício será avaliado num Ruindows, tratamos as diferenças
+ * de plataforma nessa função.
+*/
+char* platformindependent_terminatorchar(char* buff)
+{
+    // Retorna a posição ao encontrar o primeiro desses caracteres terminadores.
+    unsigned long pos = strcspn(buff, "\r\n");
+    // Como pode encontrar o caracter terminador APÓS a string,
+    // Identificamos como não encontrado (string vazia).
+    if(pos >= strlen(buff))
+        return NULL;
+    else
+        return &buff[pos];
+}
+
+// Identifica se a string contém apenas os caracteres terminadores de linha
+// (ou CRLF - 'Carriage Return, Line Feed'), tanto pra Linux como pra Windows.
+BOOL platformindependent_str_terminatorchar(char* buff)
+{return (strcmp(buff, LINUXSTREND) == 0) || (strcmp(buff, WINSTREND) == 0);}
+
+/*
  * fgets, ao contrário da função (insegura) scanf, inclui
  * os caracteres terminadores de linha (\n no Linux, \r\n no Windows).
  * Essa função coloca um caracter nulo na primeira instância desses
@@ -782,7 +805,46 @@ BOOL terminatecommand(void)
  * o token da sentença.
 */
 void zero_fgets_trailchars(char* buff)
-{buff[strcspn(buff, "\r\n")] = 0;}
+{buff[strcspn(buff, PLATFORMINDEPENDENTSTREND)] = 0;}
+
+/*
+ * fgets, por segurança, vai continuamente alimentando o buffer
+ * até o final da entrada (stdin), até encontrar um caracter terminador.
+ * Por isso tratamos a função de acordo, considerando apenas a primeira
+ * vez em que ela preenche o buffer, e ignorando o resto das entradas.
+*/
+void read_fgets_firstbuffer(char* buff, char* finalbuff, BOOL* potherbuffersfound)
+{
+    /* BUFF[MAXSENTENCESIZE+2U]
+     *                            |100
+     *          |10        .................................|40
+     * 01234567890123456789.................................901234567
+     * add 123 Robe....rto Nasc....imento 01/01/1960 +55-21-0190-0190n0
+     *                                                               ^^
+     *                                                               ||
+     *                                                               fgets vai adicionar na posição 148 o terminador (se houver)
+     *                                                               e terminar a string adicionando \0 na posição 149.
+     *                                                                |
+     *                                                                |tamanho real do buffer: (MAXSENTENCESIZE+2U).
+    */
+    char* presult = fgets(buff, MAXSENTENCESIZE+1U, stdin);
+    // Nos interessa apenas o conteúdo da primeira vez em
+    // que o fgets preenche o buffer vindo de stdin (entrada do teclado).
+    strcpy(finalbuff, buff);
+    char* newlinefound = platformindependent_terminatorchar(presult);
+    zero_fgets_trailchars(finalbuff);
+    while(newlinefound == NULL)
+    {
+        // Ainda não encontrou o terminador nessa cópia do
+        // buffer - preenche continuamente o buffer até encontrar.
+        presult = fgets(buff, MAXSENTENCESIZE+1U, stdin);
+        newlinefound = platformindependent_terminatorchar(presult);
+        // Se na próxima leitura do buffer houver algo além do terminador,
+        // o usuário digitou mais do que o limite de 30 números/caracteres.
+        if(!platformindependent_str_terminatorchar(buff))
+            *potherbuffersfound = TRUE;
+    }
+}
 
 /*
  *
@@ -795,7 +857,10 @@ void iniciaCRUD(void)
 
     while(!terminate)
     {
-        char BUFF[MAXSENTENCESIZE] = {'\0'};
+        char BUFF[MAXSENTENCESIZE+2U] = {'\0'};
+        char FINALBUFF[MAXSENTENCESIZE+2U] = {'\0'};
+        BOOL otherbuffersfound = FALSE;
+
         stQuery qry = {
             .fn = {'\0'},
             .ln = {'\0'},
@@ -810,24 +875,25 @@ void iniciaCRUD(void)
             .phone = {'\0'}
         };
 
-        fgets(BUFF, MAXSENTENCESIZE, stdin);
-        zero_fgets_trailchars(BUFF);
+        read_fgets_firstbuffer(BUFF, FINALBUFF, &otherbuffersfound);
+        if(otherbuffersfound)
+            continue;
 
-        if(addcommandlexicalanalyser_idonly(BUFF, &individuo))
+        if(addcommandlexicalanalyser_idonly(FINALBUFF, &individuo))
             if(searchdatabaserecord(&individuo) == RECORDNOTFOUNDDATABASEINDEX)
             {
-                if(addcommandlexicalanalyser(BUFF, &individuo))
+                if(addcommandlexicalanalyser(FINALBUFF, &individuo))
                     addcommand(&individuo);
             }
             else
                 addcommand(&individuo);
-        else if (delcommandlexicalanalyser(BUFF, &individuo))
+        else if (delcommandlexicalanalyser(FINALBUFF, &individuo))
             delcommand(&individuo);
-        else if (infocommandlexicalanalyser(BUFF, &individuo))
+        else if (infocommandlexicalanalyser(FINALBUFF, &individuo))
             infocommand(&individuo);
-        else if (querycommandlexicalanalyser(BUFF, &qry))
+        else if (querycommandlexicalanalyser(FINALBUFF, &qry))
             querycommand(&qry);
-        else if (terminatecommandlexicalanalyser(BUFF))
+        else if (terminatecommandlexicalanalyser(FINALBUFF))
             terminate = terminatecommand();
     }
 }

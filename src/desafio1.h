@@ -21,6 +21,10 @@
 // Indicando aqui qual o valor do maior tamanho dos parâmetros listados acima.
 #define LARGESTINDIVIDUOPARAMSIZE 50
 
+static const char* PLATFORMINDEPENDENTSTREND = "\r\n";
+static const char* LINUXSTREND = "\n";
+static const char* WINSTREND = "\r\n";
+
 /*
  * Estrutura para organizar as informações de um indivíduo.
  *
