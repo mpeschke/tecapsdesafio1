@@ -210,7 +210,7 @@ BOOL getnextsentencetoken(int* const        pposicaoleiturainicial,
  *********************ANALISADOR LÉXICO (COMANDO 'ADD')***************************************
  *
 */
-static const int MAXADDSENTENCESIZE = 137;
+#define MAXADDSENTENCESIZE 137
 
 BOOL validatetokenaddverb(const char *const verb)
 {return (strcmp(commandverbs[DESCRPOSVERBADD], verb) == 0);}
@@ -262,23 +262,24 @@ BOOL validatetokenaddcommandphoneparam(const char *const phoneparam)
 */
 BOOL addcommandlexicalanalyser_idonly(const char *const sentence, stIndividuo* pindividuo)
 {
-    int sentencesize = strlen(sentence);
+    int sentencesize = (int)strlen(sentence);
     if (sentencesize > MAXADDSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXADDSENTENCESIZE];
+    char tokenbuffer[MAXADDSENTENCESIZE+1U] = {'\0'};
+    int tokenmaxsize = MAXADDSENTENCESIZE;
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddverb(tokenbuffer))
         return FALSE;
 
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     BOOL valid = validatetokenaddcommandidparam(tokenbuffer);
@@ -311,21 +312,22 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     if (sentencesize > MAXADDSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXADDSENTENCESIZE];
+    char tokenbuffer[MAXADDSENTENCESIZE+1U] = {'\0'};
+    int tokenmaxsize = MAXADDSENTENCESIZE;
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
     // Primeiro token deve ser o verbo do comando 'add'.
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddverb(tokenbuffer))
         return FALSE;
 
     // Próximo token deve ser o ID do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddcommandidparam(tokenbuffer))
@@ -334,7 +336,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->paramId, tokenbuffer);
 
     // Próximo token deve ser o nome do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddcommandfirstnameparam(tokenbuffer))
@@ -343,7 +345,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->firstName, tokenbuffer);
 
     // Próximo token deve ser o sobrenome do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddcommandlastnameparam(tokenbuffer))
@@ -352,7 +354,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->lastName, tokenbuffer);
 
     // Próximo token deve ser o aniversário do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddcommandbirthdayparam(tokenbuffer))
@@ -361,7 +363,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->birthday, tokenbuffer);
 
     // Próximo e último token deve ser o telefone do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &MAXADDSENTENCESIZE, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokenaddcommandphoneparam(tokenbuffer))
@@ -370,7 +372,7 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->phone, tokenbuffer);
 
     // Não pode haver mais tokens. Se encontrados, com ou sem valor léxico, a sentença é considerada inválida.
-    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXADDSENTENCESIZE))
+    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     return TRUE;
@@ -385,8 +387,8 @@ BOOL addcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
  * Máximo comprimento da string: 3 + 3 + 1 = 7
  * Mínimo comprimento da string: 3 + 1 + 1 = 5
 */
-static const int MAXDELSENTENCESIZE = 7;
-static const int MINDELSENTENCESIZE = 5;
+#define MAXDELSENTENCESIZE 7
+#define MINDELSENTENCESIZE 5
 
 BOOL validatetokendelcommandidparam(const char *const idparam)
 {return validatetokenaddcommandidparam(idparam);}
@@ -400,21 +402,22 @@ BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     if (sentencesize < MINDELSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXDELSENTENCESIZE];
+    char tokenbuffer[MAXDELSENTENCESIZE] = {'\0'};
+    int tokenmaxsize = MAXDELSENTENCESIZE;
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
     // Primeiro token deve ser o verbo do comando 'del'.
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXDELSENTENCESIZE))
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokendelverb(tokenbuffer))
         return FALSE;
 
     // Próximo token deve ser o ID do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXDELSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokendelcommandidparam(tokenbuffer))
@@ -423,7 +426,7 @@ BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
     strcpy(pindividuo->paramId, tokenbuffer);
 
     // Não pode haver mais tokens. Se encontrados, com ou sem valor léxico, a sentença é considerada inválida.
-    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXDELSENTENCESIZE))
+    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     return TRUE;
@@ -437,8 +440,8 @@ BOOL delcommandlexicalanalyser(const char *const sentence, stIndividuo* pindivid
  * 'info' = 4, 'id' = 3(máximo de 3), espaços = 1.
  * Máximo comprimento da string: 4 + 3 + 1 = 8
 */
-static const int MAXINFOSENTENCESIZE = 8;
-static const int MININFOSENTENCESIZE = 6;
+#define MAXINFOSENTENCESIZE 8
+#define MININFOSENTENCESIZE 6
 
 BOOL validatetokeninfoverb(const char *const verb)
 {return (strcmp(commandverbs[DESCRPOSITIONVERBINFO], verb) == 0);}
@@ -452,21 +455,22 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
     if (sentencesize < MININFOSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXINFOSENTENCESIZE];
+    char tokenbuffer[MAXINFOSENTENCESIZE] = {'\0'};
+    int tokenmaxsize = MAXINFOSENTENCESIZE;
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
 
     // Primeiro token deve ser o verbo do comando 'info'.
     tokeninitialpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
+    if(!getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokeninfoverb(tokenbuffer))
         return FALSE;
 
     // Próximo token deve ser o ID do indivíduo.
-    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
+    if(!getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     if(!validatetokeninfocommandidparam(tokenbuffer))
@@ -475,7 +479,7 @@ BOOL infocommandlexicalanalyser(const char *const sentence, stIndividuo* pindivi
     strcpy(pindividuo->paramId, tokenbuffer);
 
     // Não pode haver mais tokens. Se encontrados, com ou sem valor léxico, a sentença é considerada inválida.
-    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &MAXINFOSENTENCESIZE))
+    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &tokenmaxsize))
         return FALSE;
 
     return TRUE;
@@ -540,7 +544,7 @@ BOOL validatetokenqueryparam(const char *const token, stQuery* pQry)
     if(size <= QUERYPARAMIDSIZE)
         return FALSE;
 
-    char paramtype[QUERYPARAMIDSIZE] = {'\0'};
+    char paramtype[QUERYPARAMIDSIZE+1U] = {'\0'};
     strncpy(paramtype, token, QUERYPARAMIDSIZE);
 
     // Query do primeiro nome.
@@ -573,7 +577,7 @@ BOOL querycommandlexicalanalyser(const char *const sentence, stQuery* pqry)
     if (sentencesize > MAXQUERYSENTENCESIZE)
         return FALSE;
 
-    char tokenbuffer[MAXQUERYSENTENCESIZE] = {'\0'};
+    char tokenbuffer[MAXQUERYSENTENCESIZE+1U] = {'\0'};
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
@@ -624,10 +628,10 @@ BOOL terminatecommandlexicalanalyser(const char *const sentence)
 {
     static const int terminatesentencesize = TERMINATEPARAMIDSIZE;
     int sentencesize = strlen(sentence);
-    if (sentencesize < TERMINATEPARAMIDSIZE)
+    if (sentencesize != TERMINATEPARAMIDSIZE)
         return FALSE;
 
-    char tokenbuffer[TERMINATEPARAMIDSIZE] = {'\0'};
+    char tokenbuffer[TERMINATEPARAMIDSIZE+1U] = {'\0'};
 
     int tokeninitialpos = 0;
     int tokenfinalpos = tokeninitialpos;
@@ -640,9 +644,7 @@ BOOL terminatecommandlexicalanalyser(const char *const sentence)
         return FALSE;
 
     // Se encontrar outros tokens inesperados, com ou sem valor sintático, invalida o comando terminate.
-    tokeninitialpos = ++tokenfinalpos;
-    tokeninitialpos = tokenfinalpos = advancetonexttoken(sentence, &tokeninitialpos, &sentencesize);
-    if(getsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &terminatesentencesize))
+    if(getnextsentencetoken(&tokeninitialpos, &tokenfinalpos, sentence, &sentencesize, tokenbuffer, &terminatesentencesize))
         return FALSE;
 
     return TRUE;

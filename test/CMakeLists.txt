@@ -119,10 +119,6 @@ do_test("querycommandLexicalAnalyser_ValidScenario" unit_tests 57 3 " query ln:N
 do_test("querycommandLexicalAnalyser_ValidScenario" unit_tests 58 3 " query    ln:Nascimento    bd:01/01/1960    fn:Roberto " "Valor esperado: TRUE. Valor retornado: TRUE.")
 
 do_test("terminatecommandLexicalAnalyser_ValidScenario" unit_tests 1 4 "000" "Valor esperado: TRUE. Valor retornado: TRUE.")
-do_test("terminatecommandLexicalAnalyser_ValidScenario" unit_tests 2 4 " 000" "Valor esperado: TRUE. Valor retornado: TRUE.")
-do_test("terminatecommandLexicalAnalyser_ValidScenario" unit_tests 3 4 "000 " "Valor esperado: TRUE. Valor retornado: TRUE.")
-do_test("terminatecommandLexicalAnalyser_ValidScenario" unit_tests 4 4 " 000 " "Valor esperado: TRUE. Valor retornado: TRUE.")
-do_test("terminatecommandLexicalAnalyser_ValidScenario" unit_tests 5 4 "    000    " "Valor esperado: TRUE. Valor retornado: TRUE.")
 
 do_test("addcommandLexicalAnalyser_InvalidScenario" unit_tests 1 5 "" "Valor esperado: FALSE. Valor retornado: FALSE.")
 do_test("addcommandLexicalAnalyser_InvalidScenario" unit_tests 2 5 "                                             " "Valor esperado: FALSE. Valor retornado: FALSE.")
