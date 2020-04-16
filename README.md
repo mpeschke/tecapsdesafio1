@@ -16,8 +16,8 @@ Por exemplo, no Ubuntu:
 
 Num terminal:
 
-*$git clone ssh://git@github.com/mpeschke/tecapsdesafio1.git* (via ssh) ou
-*$git clone https://github.com/mpeschke/tecapsdesafio1.git* (pergunta usuário e senha)
+*$git clone ssh://git@github.com/mpeschke/tecapsdesafio1.git* (via ssh) ou  
+*$git clone https://github.com/mpeschke/tecapsdesafio1.git* (pergunta usuário e senha)  
 *$cd tecapsdesafio1/*  
 *$mkdir tecapsdesafio1_build*  
 *$cd tecapsdesafio1_build/*  
